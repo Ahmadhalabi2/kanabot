@@ -1,0 +1,199 @@
+import { useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
+import {
+  ListTodo, Zap, FolderKanban, LogOut, ChevronDown,
+  LayoutGrid, Bot, Sun, Moon, Languages,
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useLang } from '../../context/LanguageContext';
+import { useDarkMode } from '../../hooks/useDarkMode';
+import { projects as projectsApi } from '../../lib/api';
+import type { ProjectWithStats } from '../../types/api';
+import logoLight from '../../assets/kanbot-logo.svg';
+import logoDark  from '../../assets/kanbot-logo-dark.svg';
+
+export function AppLayout() {
+  const { user, logout }            = useAuth();
+  const { lang, toggleLang, t }     = useLang();
+  const [dark, setDark]             = useDarkMode();
+  const navigate                    = useNavigate();
+  const { projectId }               = useParams();
+  const [allProjects, setAll]       = useState<ProjectWithStats[]>([]);
+  const [current, setCurrent]       = useState<ProjectWithStats | null>(null);
+  const [switcherOpen, setSwitch]   = useState(false);
+
+  useEffect(() => {
+    projectsApi.list().then((list) => {
+      setAll(list);
+      if (projectId) setCurrent(list.find((p) => p.id === projectId) ?? null);
+    });
+  }, [projectId]);
+
+  const handleLogout = () => { logout(); navigate('/login'); };
+
+  const projectNav = projectId ? [
+    { to: `/projects/${projectId}/backlog`,  icon: <ListTodo     size={15} />, label: t.nav.backlog      },
+    { to: `/projects/${projectId}/board`,    icon: <Zap          size={15} />, label: t.nav.activeSprint },
+    { to: `/projects/${projectId}/sprints`,  icon: <FolderKanban size={15} />, label: t.nav.sprints      },
+    { to: `/projects/${projectId}/ai`,       icon: <Bot          size={15} />, label: t.nav.aiAssistant  },
+  ] : [];
+
+  return (
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
+
+      {/* ════════════ SIDEBAR ════════════ */}
+      <aside className="sidebar-root w-56 shrink-0 flex flex-col">
+
+        {/* Logo row */}
+        <div className="h-14 flex items-center px-4 shrink-0 divider" style={{ borderBottom: '1px solid var(--border)' }}>
+          <Link to="/projects" className="flex items-center select-none">
+            <img src={dark ? logoDark : logoLight} alt="Kanbot" className="h-7 w-auto" />
+          </Link>
+        </div>
+
+        {/* Project switcher */}
+        {projectId && (
+          <div className="px-2 pt-3 relative">
+            <button
+              onClick={() => setSwitch((o) => !o)}
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <span className="w-5 h-5 rounded-md shrink-0 flex items-center justify-center
+                               bg-brand-100 text-brand-700 font-bold text-[9px]"
+                    style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+                {current?.key?.slice(0, 2) ?? '?'}
+              </span>
+              <span className="flex-1 truncate text-left">{current?.name ?? '…'}</span>
+              <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
+            </button>
+
+            {switcherOpen && (
+              <div className="switcher-dropdown absolute left-2 right-2 top-full mt-1 z-50
+                              rounded-xl shadow-xl py-1 max-h-56 overflow-y-auto border"
+                   style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)' }}>
+                {allProjects.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setSwitch(false); navigate(`/projects/${p.id}/backlog`); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors text-left"
+                    style={{
+                      color: p.id === projectId ? '#6366f1' : 'var(--text-secondary)',
+                      fontWeight: p.id === projectId ? 600 : 400,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <span className="w-5 h-5 rounded-md shrink-0 flex items-center justify-center font-bold text-[9px]"
+                          style={{ background: 'var(--hover-bg)', color: 'var(--text-muted)' }}>
+                      {p.key.slice(0, 2)}
+                    </span>
+                    <span className="truncate">{p.name}</span>
+                  </button>
+                ))}
+                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+                <button
+                  onClick={() => { setSwitch(false); navigate('/projects'); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors text-left"
+                  style={{ color: 'var(--text-muted)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <LayoutGrid size={13} /> {t.nav.allProjects}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Nav links */}
+        <nav className="flex-1 px-2 pt-3 space-y-0.5 overflow-y-auto">
+          {projectId && (
+            <>
+              <p className="section-label">{t.nav.project}</p>
+              {projectNav.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors
+                     ${isActive ? 'nav-link-active' : 'nav-link-idle'}`
+                  }
+                >
+                  {link.icon}
+                  {link.label}
+                </NavLink>
+              ))}
+              <div className="pt-2" />
+            </>
+          )}
+
+          <p className="section-label">{t.nav.account}</p>
+          <NavLink
+            to="/projects" end
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors
+               ${(isActive && !projectId) ? 'nav-link-active' : 'nav-link-idle'}`
+            }
+          >
+            <LayoutGrid size={15} /> {t.nav.projects}
+          </NavLink>
+        </nav>
+
+        {/* User footer */}
+        <div className="sidebar-footer space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center
+                            text-xs font-bold select-none"
+                 style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+              {user?.name?.[0]?.toUpperCase() ?? '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                {user?.name}
+              </p>
+              <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
+                {user?.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDark((d) => !d)}
+              title={dark ? 'Light mode' : 'Dark mode'}
+              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
+            >
+              {dark ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <button
+              onClick={toggleLang}
+              title="Toggle language"
+              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
+            >
+              <Languages size={14} />
+              <span className="text-[10px]">{lang === 'en' ? 'AR' : 'EN'}</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              title="Log out"
+              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
+              style={{ color: '#f87171' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* ════════════ MAIN ════════════ */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
+        <Outlet />
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
+/* ═══════════════════════════════════════════
+   CSS CUSTOM PROPERTIES (light & dark)
+═══════════════════════════════════════════ */
+:root {
+  --bg-app:        #f3f4f6;
+  --bg-panel:      #ffffff;
+  --bg-elevated:   #ffffff;
+  --hover-bg:      #f1f5f9;
+  --border:        #e5e7eb;
+  --border-subtle: #f3f4f6;
+  --text-primary:  #111827;
+  --text-secondary:#374151;
+  --text-muted:    #9ca3af;
+}
+
+.dark {
+  --bg-app:        #0f0f14;
+  --bg-panel:      #13131a;
+  --bg-elevated:   #1a1a27;
+  --hover-bg:      #22223a;
+  --border:        #22223a;
+  --border-subtle: #1e1e2d;
+  --text-primary:  #f1f5f9;
+  --text-secondary:#cbd5e1;
+  --text-muted:    #6b7280;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+@layer base {
+  html { @apply h-full; }
+
+  body {
+    @apply h-full font-sans antialiased;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+  }
+
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--text-muted); }
+}
+
+/* ═══════════════════════════════════════════
+   COMPONENT CLASSES (light — dark via .dark in plain CSS)
+═══════════════════════════════════════════ */
+@layer components {
+
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5
+           px-3 py-1.5 rounded-lg text-sm font-medium
+           transition-all duration-150 select-none cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary   { @apply btn bg-brand-600 text-white hover:bg-brand-500 active:bg-brand-700; }
+  .btn-secondary { @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50; }
+  .btn-danger    { @apply btn bg-red-600 text-white hover:bg-red-500; }
+  .btn-ghost     { @apply btn text-gray-500 hover:bg-gray-100 hover:text-gray-800; }
+
+  /* ── Inputs ── */
+  .input {
+    @apply w-full rounded-lg px-3 py-2 text-sm transition-all
+           bg-white border border-gray-200 text-gray-900 placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500;
+  }
+  select.input {
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 2rem;
+    cursor: pointer;
+  }
+  [dir="rtl"] select.input {
+    background-position: left 10px center;
+    padding-right: 0.75rem;
+    padding-left: 2rem;
+  }
+
+  .label       { @apply block text-sm font-medium mb-1.5 text-gray-700; }
+  .field-error { @apply text-xs text-red-500 mt-1; }
+
+  /* ── Cards ── */
+  .card { @apply rounded-xl border bg-white border-gray-200; }
+
+  /* ── Badges ── */
+  .badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium; }
+
+  /* ── Page chrome ── */
+  .page-header {
+    @apply h-14 shrink-0 flex items-center justify-between px-6
+           bg-white border-b border-gray-200;
+  }
+  .page-title { @apply text-lg font-semibold tracking-tight text-gray-900; }
+
+  /* ── Todo row ── */
+  .todo-row {
+    @apply flex items-center gap-3 px-4 py-2.5
+           border-b border-gray-100 hover:bg-gray-50
+           cursor-pointer transition-colors;
+  }
+
+  /* ── Sidebar nav ── */
+  .nav-link-active {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium
+           bg-brand-50 text-brand-700;
+  }
+  .nav-link-idle {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm
+           text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+  }
+  .nav-active   { @apply font-medium bg-brand-50 text-brand-700; }
+  .nav-inactive { @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900; }
+
+  /* Sidebar container */
+  .sidebar-root   { @apply bg-white border-r border-gray-200; }
+  .sidebar-footer { @apply border-t border-gray-100 p-3; }
+
+  .section-label { @apply text-[10px] font-semibold uppercase tracking-widest px-3 py-1.5 text-gray-400; }
+  .divider       { @apply border-t border-gray-100; }
+}
+
+/* ═══════════════════════════════════════════
+   DARK MODE — all via .dark selector
+   (tailwind darkMode: 'class' adds .dark to <html>)
+═══════════════════════════════════════════ */
+
+/* ── Base ── */
+.dark body { background-color: #0f0f14; color: #f1f5f9; }
+
+.dark ::-webkit-scrollbar-thumb       { background-color: #22223a; }
+.dark ::-webkit-scrollbar-thumb:hover { background-color: #3a3a5c; }
+
+/* ── Buttons ── */
+.dark .btn-primary            { background-color: #4f46e5; color: #fff; }
+.dark .btn-primary:hover      { background-color: #6366f1; }
+.dark .btn-primary:active     { background-color: #4338ca; }
+.dark .btn-secondary          { background-color: #1a1a27; color: #e2e8f0; border-color: #2a2a45; }
+.dark .btn-secondary:hover    { background-color: #22223a; border-color: #3a3a5c; }
+.dark .btn-ghost              { color: #9ca3af; }
+.dark .btn-ghost:hover        { background-color: #22223a; color: #e2e8f0; }
+.dark .btn-danger             { background-color: #dc2626; }
+.dark .btn-danger:hover       { background-color: #ef4444; }
+
+/* ── Inputs ── */
+.dark .input                  { background-color: #1a1a27; border-color: #2a2a45; color: #f1f5f9; }
+.dark .input::placeholder     { color: #4b5563; }
+.dark .input:focus            { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+.dark select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+.dark .label { color: #cbd5e1; }
+
+/* ── Cards ── */
+.dark .card { background-color: #1a1a27; border-color: #22223a; }
+
+/* ── Page chrome ── */
+.dark .page-header { background-color: rgba(19,19,27,0.92); border-bottom-color: #22223a; backdrop-filter: blur(8px); }
+.dark .page-title  { color: #f8fafc; }
+
+/* ── Todo row ── */
+.dark .todo-row        { border-bottom-color: rgba(34,34,58,0.6); }
+.dark .todo-row:hover  { background-color: rgba(30,27,75,0.2); }
+
+/* ── Sidebar ── */
+.dark .sidebar-root    { background-color: #13131a; border-right-color: #22223a; }
+.dark .sidebar-footer  { border-top-color: #22223a; }
+
+/* ── Nav ── */
+.dark .nav-link-active  { background-color: rgba(30,27,75,0.55); color: #a5b4fc; }
+.dark .nav-link-idle    { color: #9ca3af; }
+.dark .nav-link-idle:hover { background-color: #22223a; color: #e2e8f0; }
+.dark .nav-active        { background-color: rgba(30,27,75,0.55); color: #a5b4fc; }
+.dark .nav-inactive      { color: #9ca3af; }
+.dark .nav-inactive:hover { background-color: #22223a; color: #e2e8f0; }
+.dark .section-label    { color: #4b5563; }
+.dark .divider          { border-top-color: #22223a; }
+
+/* ── Page content backgrounds ── */
+.dark .page-content { background-color: #0f0f14; }
+
+/* ── Autofill fix ── */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #f1f5f9 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1a1a27 inset !important;
+}
+
+/* ── Markdown / Prose ── */
+.dark .prose,
+.dark .prose-invert { color: #cbd5e1; }
+.dark .prose h1, .dark .prose h2, .dark .prose h3,
+.dark .prose h4 { color: #f1f5f9; }
+.dark .prose strong { color: #e2e8f0; }
+.dark .prose a      { color: #818cf8; }
+.dark .prose code   { background-color: #22223a; color: #a5b4fc; border-radius: 4px; padding: 1px 4px; }
+.dark .prose pre    { background-color: #13131a; }
+.dark .prose blockquote { border-left-color: #4338ca; color: #94a3b8; }
+.dark .prose li::marker { color: #6366f1; }
+
+/* ── Modal/drawer backgrounds ── */
+/* Modals use .card which is already handled above */
+/* Drawer background - used in AiDrawer */
+.dark [class*="bg-white"] { }  /* No-op placeholder */
+
+/* Specific panel overrides for pages that use inline bg-white */
+.dark .bg-white    { background-color: #1a1a27 !important; }
+.dark .bg-gray-50  { background-color: #13131a !important; }
+.dark .bg-gray-100 { background-color: #22223a !important; }
+
+/* Border overrides */
+.dark .border-gray-100 { border-color: #1e1e2d !important; }
+.dark .border-gray-200 { border-color: #22223a !important; }
+
+/* Text overrides */
+.dark .text-gray-900 { color: #f1f5f9 !important; }
+.dark .text-gray-800 { color: #e2e8f0 !important; }
+.dark .text-gray-700 { color: #cbd5e1 !important; }
+.dark .text-gray-600 { color: #94a3b8 !important; }
+.dark .text-gray-500 { color: #6b7280 !important; }
+.dark .text-gray-400 { color: #4b5563 !important; }
+
+/* Hover bg overrides */
+.dark .hover\:bg-gray-50:hover  { background-color: #22223a !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #22223a !important; }
+
+/* Sticky section headers in Backlog */
+.dark .sticky { background-color: rgba(15,15,20,0.97) !important; }
