@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import {
   ListTodo, Zap, FolderKanban, LogOut, ChevronDown,
@@ -21,6 +21,16 @@ export function AppLayout() {
   const [allProjects, setAll]       = useState<ProjectWithStats[]>([]);
   const [current, setCurrent]       = useState<ProjectWithStats | null>(null);
   const [switcherOpen, setSwitch]   = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
+  const menuRef                     = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     projectsApi.list().then((list) => {
@@ -143,49 +153,82 @@ export function AppLayout() {
         </nav>
 
         {/* User footer */}
-        <div className="sidebar-footer space-y-2">
-          <div className="flex items-center gap-2 px-1">
-            <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center
-                            text-xs font-bold select-none"
-                 style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
-              {user?.name?.[0]?.toUpperCase() ?? '?'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                {user?.name}
-              </p>
-              <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
-                {user?.email}
-              </p>
-            </div>
-          </div>
+        <div className="sidebar-footer">
+          <div ref={menuRef} className="relative">
 
-          <div className="flex items-center gap-1">
+            {/* ── User menu trigger ── */}
             <button
-              onClick={() => setDark((d) => !d)}
-              title={dark ? 'Light mode' : 'Dark mode'}
-              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="w-full flex items-center gap-2 px-1 py-1.5 rounded-lg transition-colors"
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              {dark ? <Sun size={14} /> : <Moon size={14} />}
+              <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-bold select-none"
+                   style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+                {user?.name?.[0]?.toUpperCase() ?? '?'}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                  {user?.name}
+                </p>
+                <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
+                  {user?.email}
+                </p>
+              </div>
+              <ChevronDown
+                size={12}
+                style={{ color: 'var(--text-muted)' }}
+                className={`transition-transform duration-150 ${menuOpen ? 'rotate-180' : ''}`}
+              />
             </button>
-            <button
-              onClick={toggleLang}
-              title="Toggle language"
-              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
-            >
-              <Languages size={14} />
-              <span className="text-[10px]">{lang === 'en' ? 'AR' : 'EN'}</span>
-            </button>
-            <button
-              onClick={handleLogout}
-              title="Log out"
-              className="btn-ghost flex-1 py-1.5 text-xs rounded-lg"
-              style={{ color: '#f87171' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-            >
-              <LogOut size={14} />
-            </button>
+
+            {/* ── Dropdown menu ── */}
+            {menuOpen && (
+              <div
+                className="absolute bottom-full left-0 right-0 mb-1.5 z-50 rounded-xl shadow-xl border py-1 overflow-hidden"
+                style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)' }}
+              >
+                {/* Dark / Light */}
+                <button
+                  onClick={() => { setDark((d) => !d); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  {dark ? <Sun size={14} /> : <Moon size={14} />}
+                  <span>{dark ? (lang === 'ar' ? 'الوضع النهاري' : 'Light mode') : (lang === 'ar' ? 'الوضع الليلي' : 'Dark mode')}</span>
+                </button>
+
+                {/* Language */}
+                <button
+                  onClick={() => { toggleLang(); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <Languages size={14} />
+                  <span>{lang === 'en' ? 'العربية' : 'English'}</span>
+                </button>
+
+                {/* Divider */}
+                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left"
+                  style={{ color: '#f87171' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <LogOut size={14} />
+                  <span>{lang === 'ar' ? 'تسجيل الخروج' : 'Log out'}</span>
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
       </aside>

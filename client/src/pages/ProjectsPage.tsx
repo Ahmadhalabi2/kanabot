@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Pencil, Trash2, ArrowRight, Layers, Zap, FolderKanban, X } from 'lucide-react';
 import { projects as projectsApi } from '../lib/api';
@@ -6,6 +7,7 @@ import type { ProjectWithStats } from '../types/api';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Spinner } from '../components/ui/Spinner';
+import { useToast } from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
 
 function ProjectForm({
@@ -18,29 +20,39 @@ function ProjectForm({
   const { t } = useLang();
   const [form, setForm] = useState({ name: initial?.name ?? '', key: initial?.key ?? '', description: initial?.description ?? '' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const set = (f: string, v: string) => setForm((p) => ({ ...p, [f]: v }));
+  const [errors, setErrors]   = useState<{ general?: string; key?: string; name?: string }>({});
+  const set = (f: string, v: string) => { setForm((p) => ({ ...p, [f]: v })); setErrors((e) => ({ ...e, [f]: undefined })); };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { setError(t.projects.nameRequired); return; }
+    if (!form.name.trim()) { setErrors({ name: t.projects.nameRequired }); return; }
     setLoading(true);
+    setErrors({});
     try {
       await onSubmit({ name: form.name.trim(), key: form.key.trim() || undefined, description: form.description.trim() || undefined });
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : t.common.error); }
+    } catch (err: unknown) {
+      const status  = (err as { status?: number }).status;
+      const message = err instanceof Error ? err.message : t.common.error;
+      // 409 on key conflict — show under the key field
+      if (status === 409) { setErrors({ key: 'This key is already used by another project.' }); }
+      else { setErrors({ general: message }); }
+    }
     finally { setLoading(false); }
   };
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
+      {errors.general && <p className="text-sm text-red-500 dark:text-red-400">{errors.general}</p>}
       <div>
         <label className="label">{t.projects.projectName}</label>
         <input className="input" autoFocus required maxLength={80} value={form.name} onChange={(e) => set('name', e.target.value)} placeholder={t.projects.projectNamePlaceholder} />
+        {errors.name && <p className="field-error">{errors.name}</p>}
       </div>
       <div>
         <label className="label">{t.projects.key} <span className="text-gray-400 font-normal text-xs">{t.projects.keyHint}</span></label>
-        <input className="input uppercase font-mono tracking-widest" maxLength={6} value={form.key} onChange={(e) => set('key', e.target.value.toUpperCase())} placeholder={t.projects.keyPlaceholder} />
+        <input className={`input uppercase font-mono tracking-widest ${errors.key ? 'border-red-400 focus:border-red-400 focus:ring-red-200' : ''}`}
+               maxLength={6} value={form.key} onChange={(e) => set('key', e.target.value.toUpperCase())} placeholder={t.projects.keyPlaceholder} />
+        {errors.key && <p className="field-error">{errors.key}</p>}
       </div>
       <div>
         <label className="label">{t.projects.description}</label>
@@ -59,7 +71,8 @@ function ProjectForm({
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t }   = useLang();
+  const toast   = useToast();
   const [list, setList]         = useState<ProjectWithStats[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
@@ -78,12 +91,14 @@ export function ProjectsPage() {
     const p = await projectsApi.create(d);
     setList((prev) => [p, ...prev]);
     setCreateOpen(false);
+    toast.success('Project created!');
   };
   const handleUpdate = async (d: Parameters<typeof projectsApi.update>[1]) => {
     if (!editTarget) return;
     const updated = await projectsApi.update(editTarget.id, d);
     setList((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     setEditTarget(null);
+    toast.success('Project updated!');
   };
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -92,6 +107,7 @@ export function ProjectsPage() {
       await projectsApi.delete(deleteTarget.id);
       setList((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
+      toast.success('Project deleted.');
     } finally { setDeleting(false); }
   };
 

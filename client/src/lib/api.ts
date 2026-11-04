@@ -40,14 +40,23 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-// Normalise error messages
+// Normalise error messages + handle expired session (AUTH-6)
 http.interceptors.response.use(
   (r) => r,
   (err: AxiosError<ApiErrorBody>) => {
+    const status = err.response?.status;
+    // 401 on any request except login/register → clear session and redirect
+    const url = err.config?.url ?? '';
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
+    if (status === 401 && !isAuthEndpoint) {
+      localStorage.removeItem('kanbot_token');
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?redirect=${redirect}&expired=1`;
+    }
     const msg = err.response?.data?.error?.message ?? err.message ?? 'Something went wrong';
     const code = err.response?.data?.error?.code ?? 'INTERNAL_ERROR';
     const details = err.response?.data?.error?.details;
-    const enhanced = Object.assign(new Error(msg), { code, details, status: err.response?.status });
+    const enhanced = Object.assign(new Error(msg), { code, details, status });
     return Promise.reject(enhanced);
   },
 );

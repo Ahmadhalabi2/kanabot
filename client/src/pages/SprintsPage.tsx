@@ -9,6 +9,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { CompleteSprintModal } from '../components/ai/CompleteSprintModal';
+import { useToast } from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
 
 /* ── status helpers ───────────────────────────────────── */
@@ -90,6 +91,7 @@ export function SprintsPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate      = useNavigate();
   const { t }         = useLang();
+  const toast         = useToast();
 
   const [list, setList]           = useState<Sprint[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -124,6 +126,9 @@ export function SprintsPage() {
       setSummaryText(res.summary.content);
       setList((p) => p.map((s) => (s.id === res.sprint.id ? res.sprint : s)));
       setSelected(res.sprint);
+      toast.success('Summary generated!');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate summary');
     } finally { setSummarizing(false); }
   };
 
@@ -370,6 +375,7 @@ export function SprintsPage() {
             setList((p) => p.map((x) => (x.id === s.id ? s : x)));
             setSelected(s);
             setCompleteOpen(false);
+            toast.success('Sprint completed!');
           }}
         />
       )}

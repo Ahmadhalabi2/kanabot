@@ -11,7 +11,7 @@ import logoDark  from '../assets/kanbot-logo-dark.svg';
 
 export function RegisterPage() {
   const { login }               = useAuth();
-  const { t, lang, toggleLang } = useLang();
+  const { t, toggleLang } = useLang();
   const [dark, setDark]         = useDarkMode();
   const navigate                = useNavigate();
   const [form, setForm]         = useState({ name: '', email: '', password: '', confirm: '' });

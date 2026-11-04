@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Send, Sparkles, Zap, RotateCcw, Plus, Bot } from 'lucide-react';
+import { Send, Sparkles, Zap, RotateCcw, Plus, Bot, ChevronDown, Check } from 'lucide-react';
 import { ai as aiApi, sprints as sprintsApi, todos as todosApi } from '../lib/api';
 import type { ChatMessage, DraftTodo, Sprint, AiStatusResponse, PlanSprintResponse } from '../types/api';
 import { TODO_TYPES, TODO_PRIORITIES, STORY_POINTS } from '../types/api';
@@ -10,6 +10,69 @@ import { Spinner } from '../components/ui/Spinner';
 import { useLang } from '../context/LanguageContext';
 
 type Tab = 'chat' | 'generate' | 'plan' | 'summary';
+
+// ── Custom Select ──────────────────────────────────────────────────────
+function CustomSelect({
+  options,
+  value,
+  onChange,
+  className = '',
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="input flex items-center justify-between gap-2 text-left cursor-pointer w-full"
+      >
+        <span className="truncate">{selected?.label ?? '—'}</span>
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-violet-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute z-[100] mt-1.5 w-full rounded-xl border border-violet-200 dark:border-surface-600
+                        bg-white dark:bg-surface-800 shadow-xl overflow-hidden">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-left
+                         transition-colors duration-100
+                         ${opt.value === value
+                           ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium'
+                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-surface-700'
+                         }`}
+            >
+              <span className="truncate">{opt.label}</span>
+              {opt.value === value && <Check size={13} className="shrink-0 text-violet-500" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Chat Tab ──────────────────────────────────────────────────────────
 function ChatTab({ projectId, messages, setMessages }: {
@@ -317,16 +380,24 @@ function SummaryTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="p-5 space-y-5 bg-white dark:bg-surface-850">
-      <div className="flex gap-3 items-end">
-        <div className="flex-1">
-          <label className="label">{t.ai.sprintLabel}</label>
-          <select className="input" value={selectedSprintId} onChange={(e) => { setSelectedSprintId(e.target.value); setSummary(''); }}>
-            {sprintsList.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.status})</option>)}
-          </select>
+      <div>
+        <label className="label mb-1 block">{t.ai.sprintLabel}</label>
+        <div className="flex gap-3">
+          <CustomSelect
+            className="flex-1 min-w-0"
+            options={sprintsList.map((s) => ({ value: s.id, label: `${s.name} (${s.status})` }))}
+            value={selectedSprintId}
+            onChange={(v) => { setSelectedSprintId(v); setSummary(''); }}
+          />
+          <button
+            className="btn-primary gap-1.5 shrink-0"
+            onClick={generate}
+            disabled={generating}
+          >
+            {generating ? <Spinner size="sm" /> : <RotateCcw size={14} />}
+            {t.ai.generateSummary}
+          </button>
         </div>
-        <button className="btn-primary whitespace-nowrap" onClick={generate} disabled={generating}>
-          {generating ? <Spinner size="sm" /> : <RotateCcw size={14} />} {t.ai.generateSummary}
-        </button>
       </div>
 
       {error      && <p className="text-sm text-red-500">{error}</p>}
@@ -411,7 +482,7 @@ export function AiPage() {
             </button>
           ))}
         </div>
-        <div className="border border-t-0 border-gray-200 dark:border-surface-600 rounded-b-lg overflow-hidden">
+        <div className="border border-t-0 border-gray-200 dark:border-surface-600 rounded-b-lg">
           <div className={tab !== 'chat'     ? 'hidden' : ''}><ChatTab     projectId={projectId!} messages={chatMessages} setMessages={setChatMessages} /></div>
           <div className={tab !== 'generate' ? 'hidden' : ''}><GenerateTab projectId={projectId!} /></div>
           <div className={tab !== 'plan'     ? 'hidden' : ''}><PlanTab     projectId={projectId!} /></div>

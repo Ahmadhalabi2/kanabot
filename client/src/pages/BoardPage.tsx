@@ -15,6 +15,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { TodoDetailModal } from '../components/TodoDetailModal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { CompleteSprintModal } from '../components/ai/CompleteSprintModal';
+import { useToast } from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
 
 /* ── Column config built at runtime with i18n ── */
@@ -174,6 +175,7 @@ export function BoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate      = useNavigate();
   const { t }         = useLang();
+  const toast         = useToast();
   const COLUMNS       = getColumns(t);
 
   const [board, setBoard]       = useState<SprintBoardResponse | null>(null);
@@ -191,13 +193,16 @@ export function BoardPage() {
 
   const loadBoard = useCallback(async () => {
     if (!projectId) return;
-    const list = await sprintsApi.list(projectId);
-    setAllSprints(list);
-    const active = list.find((s) => s.status === 'active');
-    if (!active) { setBoard(null); setLoading(false); return; }
-    const data = await sprintsApi.board(active.id);
-    setBoard(data);
-    setLoading(false);
+    try {
+      const list = await sprintsApi.list(projectId);
+      setAllSprints(list);
+      const active = list.find((s) => s.status === 'active');
+      if (!active) { setBoard(null); setLoading(false); return; }
+      const data = await sprintsApi.board(active.id);
+      setBoard(data);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load board');
+    } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { loadBoard(); }, [loadBoard]);

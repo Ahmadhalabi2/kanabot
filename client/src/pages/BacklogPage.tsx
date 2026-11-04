@@ -7,10 +7,12 @@ import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
 import { FilterSelect } from '../components/ui/FilterSelect';
 import type { FilterOption } from '../components/ui/FilterSelect';
+import { useDebounce } from '../hooks/useDebounce';
 import { GenerateTodosModal } from '../components/ai/GenerateTodosModal';
 import { PlanSprintModal } from '../components/ai/PlanSprintModal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { TodoDetailModal } from '../components/TodoDetailModal';
+import { useToast } from '../components/ui/Toast';
 import { useLang } from '../context/LanguageContext';
 // import { FilterSelect } from '../components/ui/FilterSelect';
 // import type { FilterOption } from '../components/ui/FilterSelect';
@@ -125,14 +127,28 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
 }) {
   const navigate = useNavigate();
   const { t } = useLang();
-  const [expanded, setExpanded] = useState(true);
-  const [inline, setInline] = useState(false);
+  const [expanded, setExpanded]         = useState(true);
+  const [inline, setInline]             = useState(false);
+  const [startOpen, setStartOpen]       = useState(false);
+  const [startForm, setStartForm]       = useState({ startDate: '', endDate: '' });
+  const [startLoading, setStartLoading] = useState(false);
+  const [startError, setStartError]     = useState('');
   const pts = todos.reduce((s, t) => s + (t.storyPoints ?? 0), 0);
 
-  const startSprint = async () => {
-    const s = await sprintsApi.start(sprint.id);
-    onSprintUpdated(s);
-    navigate(`/projects/${projectId}/board`);
+  const handleStart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStartLoading(true); setStartError('');
+    try {
+      const s = await sprintsApi.start(sprint.id, {
+        startDate: startForm.startDate || undefined,
+        endDate:   startForm.endDate   || undefined,
+      });
+      onSprintUpdated(s);
+      setStartOpen(false);
+      navigate(`/projects/${projectId}/board`);
+    } catch (err: unknown) {
+      setStartError(err instanceof Error ? err.message : t.common.error);
+    } finally { setStartLoading(false); }
   };
 
   return (
@@ -152,7 +168,7 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
         {sprint.startDate && sprint.endDate && <span className="text-[11px] text-gray-400 dark:text-gray-500">{sprint.startDate} → {sprint.endDate}</span>}
         <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-1">· {t.backlog.todosCount(todos.length, pts)}</span>
         <div className="ml-auto flex items-center gap-2">
-          {sprint.status === 'planned' && <button className="btn-primary text-xs py-1 px-3" onClick={startSprint}>{t.backlog.startSprint}</button>}
+          {sprint.status === 'planned' && <button className="btn-primary text-xs py-1 px-3" onClick={() => setStartOpen(true)}>{t.backlog.startSprint}</button>}
           {sprint.status === 'active' && <button className="btn-secondary text-xs py-1 px-3" onClick={() => navigate(`/projects/${projectId}/board`)}>{t.board.title}</button>}
         </div>
       </div>
@@ -171,18 +187,49 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
           )}
         </div>
       )}
+
+      {/* ── Start Sprint Dialog ── */}
+      <Modal open={startOpen} onClose={() => setStartOpen(false)} title={t.backlog.startSprint} size="sm">
+        <form onSubmit={handleStart} className="space-y-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Starting <span className="font-semibold text-gray-800 dark:text-gray-200">{sprint.name}</span> with {todos.length} todos.
+          </p>
+          {startError && <p className="text-sm text-red-500">{startError}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">{t.backlog.startDate}</label>
+              <input type="date" className="input" value={startForm.startDate}
+                     onChange={(e) => setStartForm((p) => ({ ...p, startDate: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">{t.backlog.endDate}</label>
+              <input type="date" className="input" value={startForm.endDate}
+                     onChange={(e) => setStartForm((p) => ({ ...p, endDate: e.target.value }))} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" className="btn-secondary" onClick={() => setStartOpen(false)}>{t.common.cancel}</button>
+            <button type="submit" className="btn-primary" disabled={startLoading}>
+              {startLoading ? <Spinner size="sm" /> : null}
+              {t.backlog.startSprint}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
 
 export function BacklogPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const { t } = useLang();
+  const { t }    = useLang();
+  const toast    = useToast();
   const [todoMap, setTodoMap]   = useState<Record<string, Todo[]>>({});
   const [backlog, setBacklog]   = useState<Todo[]>([]);
   const [sprints, setSprints]   = useState<Sprint[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
+  const debouncedSearch         = useDebounce(search, 300);
   const [filterPri, setFilterPri]   = useState<TodoPriority | ''>('');
   const [filterType, setFilterType] = useState<TodoType | ''>('');
   const [blExpanded, setBlExpanded] = useState(true);
@@ -208,7 +255,10 @@ export function BacklogPage() {
   const filter = (items: Todo[]) => items.filter((t) => {
     if (filterPri  && t.priority !== filterPri)  return false;
     if (filterType && t.type     !== filterType) return false;
-    if (search) { const q = search.toLowerCase(); return t.title.toLowerCase().includes(q) || t.key.toLowerCase().includes(q); }
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      return t.title.toLowerCase().includes(q) || t.key.toLowerCase().includes(q);
+    }
     return true;
   });
 
@@ -300,7 +350,7 @@ export function BacklogPage() {
         {done.length > 0 && <p className="px-4 py-3 text-xs text-gray-400 border-t border-gray-100 dark:border-surface-600/30">{t.backlog.completedSprints(done.length)}</p>}
       </div>
 
-      {selected && <TodoDetailModal todo={selected} sprints={sprints} open={!!selected} onClose={() => setSelected(null)} onUpdated={(t) => { load(); setSelected(t); }} onDeleted={() => { load(); setSelected(null); }} />}
+      {selected && <TodoDetailModal todo={selected} sprints={sprints} open={!!selected} onClose={() => setSelected(null)} onUpdated={(t) => { load(); setSelected(t); toast.success('Todo updated!'); }} onDeleted={() => { load(); setSelected(null); toast.success('Todo deleted.'); }} />}
       <GenerateTodosModal projectId={projectId!} open={genOpen} onClose={() => setGenOpen(false)} onSaved={() => { setGenOpen(false); load(); }} />
       <PlanSprintModal projectId={projectId!} open={planOpen} onClose={() => setPlanOpen(false)} onCreated={() => { setPlanOpen(false); load(); }} />
       <Modal open={sprintOpen} onClose={() => setSprintOpen(false)} title={t.backlog.newSprint}>

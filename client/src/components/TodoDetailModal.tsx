@@ -17,7 +17,7 @@ interface Props {
 
 export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, onDeleted }: Props) {
   const { t } = useLang();
-  const [form, setForm] = useState({
+  const initialForm = {
     title:       todo.title,
     description: todo.description,
     status:      todo.status,
@@ -27,12 +27,20 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
     sprintId:    todo.sprintId,
     labels:      todo.labels.join(', '),
     dueDate:     todo.dueDate ?? '',
-  });
-  const [saving, setSaving]   = useState(false);
+  };
+  const [form, setForm]         = useState(initialForm);
+  const [saving, setSaving]     = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError]       = useState('');
 
   if (!open) return null;
+
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
+
+  const handleClose = () => {
+    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return;
+    onClose();
+  };
 
   const set = (f: string, v: unknown) => setForm((p) => ({ ...p, [f]: v }));
 
@@ -97,7 +105,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div className="bg-white dark:bg-surface-700 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
         {/* Header */}
@@ -106,7 +114,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {typeLabel(todo.type)} · {t.todo.created} {new Date(todo.createdAt).toLocaleDateString()}
           </span>
-          <button className="ms-auto text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" onClick={onClose}><X size={18} /></button>
+          <button className="ms-auto text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" onClick={handleClose}><X size={18} /></button>
         </div>
 
         {error && (
@@ -180,7 +188,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
             {deleting ? <Spinner size="sm" /> : null} {t.common.delete}
           </button>
           <div className="flex gap-2">
-            <button className="btn-secondary" onClick={onClose}>{t.common.cancel}</button>
+            <button className="btn-secondary" onClick={handleClose}>{t.common.cancel}</button>
             <button className="btn-primary" onClick={handleSave} disabled={saving}>
               {saving ? <Spinner size="sm" /> : null} {t.common.save}
             </button>

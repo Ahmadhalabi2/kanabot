@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Sun, Moon, Languages } from 'lucide-react';
 import { Spinner } from '../components/ui/Spinner';
 import { useAuth } from '../context/AuthContext';
@@ -11,12 +11,16 @@ import logoDark  from '../assets/kanbot-logo-dark.svg';
 
 export function LoginPage() {
   const { login }               = useAuth();
-  const { t, lang, toggleLang } = useLang();
+  const { t, toggleLang }       = useLang();
   const [dark, setDark]         = useDarkMode();
   const navigate                = useNavigate();
+  const [searchParams]          = useSearchParams();
   const [form, setForm]         = useState({ email: '', password: '' });
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+
+  const redirectTo = searchParams.get('redirect') ?? '/projects';
+  const expired    = searchParams.get('expired') === '1';
 
   const set = (f: string, v: string) => setForm((p) => ({ ...p, [f]: v }));
 
@@ -27,7 +31,7 @@ export function LoginPage() {
     try {
       const data = await auth.login(form);
       login(data.token, data.user);
-      navigate('/projects');
+      navigate(decodeURIComponent(redirectTo), { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t.auth.loginFailed);
     } finally { setLoading(false); }
@@ -74,6 +78,16 @@ export function LoginPage() {
             {t.auth.welcomeBack}
           </h1>
         </div>
+
+        {/* Expired session banner */}
+        {expired && !error && (
+          <div className="flex items-center gap-2.5 mb-4 px-3.5 py-3 rounded-lg text-sm
+                          bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50
+                          text-amber-700 dark:text-amber-400">
+            <AlertCircle size={15} className="shrink-0" />
+            Your session has expired. Please log in again.
+          </div>
+        )}
 
         {/* Error */}
         {error && (
