@@ -21,9 +21,16 @@ export function AiDrawer({ open, onClose, projectId, activeSprint, onGenerateTod
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
-  const bottomRef               = useRef<HTMLDivElement>(null);
+  const listRef                 = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  // Scroll ONLY the messages container (never ancestors).
+  // scrollIntoView() was scrolling the whole page horizontally toward the
+  // off-screen drawer, which shifted the entire layout to the left.
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || messages.length === 0) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, [messages, loading]);
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +97,7 @@ export function AiDrawer({ open, onClose, projectId, activeSprint, onGenerateTod
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center gap-2 text-gray-400">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t.ai.askAnything}</p>
@@ -130,7 +137,6 @@ export function AiDrawer({ open, onClose, projectId, activeSprint, onGenerateTod
               </div>
             </div>
           )}
-          <div ref={bottomRef} />
         </div>
 
         {/* Input */}

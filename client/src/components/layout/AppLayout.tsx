@@ -259,8 +259,8 @@ export function AppLayout() {
 
       {/* ════ SIDEBAR ════ */}
       <aside
-        className={`sidebar-root flex flex-col z-50 w-64 md:w-56 shrink-0
-                    fixed md:relative inset-y-0 left-0
+        className={`sidebar-root flex flex-col z-50 w-56 shrink-0
+                    fixed inset-y-0 left-0
                     transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         aria-label="Sidebar navigation"
@@ -288,7 +288,7 @@ export function AppLayout() {
       </aside>
 
       {/* ════ MAIN CONTENT ════ */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden md:pl-56" style={{ backgroundColor: 'var(--bg-app)' }}>
 
         {/* ── Mobile top bar with hamburger ── */}
         <div className="md:hidden flex items-center gap-3 px-4 h-14 shrink-0
