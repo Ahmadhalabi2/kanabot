@@ -349,12 +349,16 @@ function SummaryTab({ projectId }: { projectId: string }) {
   const [error, setError]                       = useState('');
 
   useEffect(() => {
-    sprintsApi.list(projectId).then((list) => {
-      const eligible = list.filter((s) => s.status !== 'planned');
-      setSprintsList(eligible);
-      if (eligible.length > 0) setSelectedSprintId(eligible[0].id);
-      setLoading(false);
-    });
+    sprintsApi.list(projectId)
+      .then((list) => {
+        const eligible = list.filter((s) => s.status !== 'planned');
+        setSprintsList(eligible);
+        if (eligible.length > 0) setSelectedSprintId(eligible[0].id);
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Failed to load sprints');
+      })
+      .finally(() => setLoading(false));
   }, [projectId]);
 
   const generate = async () => {
@@ -373,6 +377,21 @@ function SummaryTab({ projectId }: { projectId: string }) {
   const displaySummary = summary || selectedSprint?.summary?.content;
 
   if (loading) return <div className="flex justify-center py-12 bg-white dark:bg-surface-850"><Spinner /></div>;
+
+  if (error && sprintsList.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-sm text-red-500 mb-3">{error}</p>
+        <button className="btn-secondary text-xs" onClick={() => {
+          setError(''); setLoading(true);
+          sprintsApi.list(projectId)
+            .then((list) => { const e = list.filter((s) => s.status !== 'planned'); setSprintsList(e); if (e.length) setSelectedSprintId(e[0].id); })
+            .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Failed'))
+            .finally(() => setLoading(false));
+        }}>Try again</button>
+      </div>
+    );
+  }
 
   if (sprintsList.length === 0) {
     return <div className="p-8 text-center text-sm text-gray-400 bg-white dark:bg-surface-850">{t.ai.noSprintsYet}</div>;

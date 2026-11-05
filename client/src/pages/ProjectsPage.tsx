@@ -8,6 +8,8 @@ import { Modal } from '../components/ui/Modal';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Spinner } from '../components/ui/Spinner';
 import { useToast } from '../components/ui/Toast';
+import { ProjectsSkeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
 
 function ProjectForm({
@@ -80,8 +82,15 @@ export function ProjectsPage() {
   const [editTarget, setEditTarget]     = useState<ProjectWithStats | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProjectWithStats | null>(null);
   const [deleting, setDeleting]         = useState(false);
+  const [loadError, setLoadError]       = useState('');
 
-  useEffect(() => { projectsApi.list().then(setList).finally(() => setLoading(false)); }, []);
+  useEffect(() => {
+    setLoadError('');
+    projectsApi.list()
+      .then(setList)
+      .catch((err: unknown) => setLoadError(err instanceof Error ? err.message : 'Failed to load projects'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = list.filter((p) =>
     !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.key.toLowerCase().includes(search.toLowerCase()),
@@ -111,7 +120,8 @@ export function ProjectsPage() {
     } finally { setDeleting(false); }
   };
 
-  if (loading) return <div className="flex-1 flex items-center justify-center"><Spinner size="lg" /></div>;
+  if (loading) return <ProjectsSkeleton />;
+  if (loadError) return <ErrorState message={loadError} onRetry={() => { setLoading(true); projectsApi.list().then(setList).catch((e: unknown) => setLoadError(e instanceof Error ? e.message : 'Failed')).finally(() => setLoading(false)); }} />;
 
   return (
     <div className="flex-1 overflow-y-auto">

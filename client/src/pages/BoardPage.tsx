@@ -16,6 +16,8 @@ import { TodoDetailModal } from '../components/TodoDetailModal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { CompleteSprintModal } from '../components/ai/CompleteSprintModal';
 import { useToast } from '../components/ui/Toast';
+import { BoardSkeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
 
 /* ── Column config built at runtime with i18n ── */
@@ -181,6 +183,7 @@ export function BoardPage() {
   const [board, setBoard]       = useState<SprintBoardResponse | null>(null);
   const [allSprints, setAllSprints] = useState<Sprint[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [activeDrag, setActiveDrag] = useState<Todo | null>(null);
   const [selected, setSelected] = useState<Todo | null>(null);
   const [aiOpen, setAiOpen]     = useState(false);
@@ -193,6 +196,7 @@ export function BoardPage() {
 
   const loadBoard = useCallback(async () => {
     if (!projectId) return;
+    setLoadError('');
     try {
       const list = await sprintsApi.list(projectId);
       setAllSprints(list);
@@ -201,7 +205,7 @@ export function BoardPage() {
       const data = await sprintsApi.board(active.id);
       setBoard(data);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load board');
+      setLoadError(err instanceof Error ? err.message : 'Failed to load board');
     } finally { setLoading(false); }
   }, [projectId]);
 
@@ -257,11 +261,8 @@ export function BoardPage() {
   };
 
   /* ── render ── */
-  if (loading) return (
-    <div className="flex-1 flex items-center justify-center">
-      <Spinner size="lg" />
-    </div>
-  );
+  if (loading) return <BoardSkeleton />;
+  if (loadError) return <ErrorState message={loadError} onRetry={loadBoard} />;
 
   if (!board) return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">

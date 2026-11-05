@@ -4,6 +4,7 @@ import { todos as todosApi } from '../lib/api';
 import type { Todo, Sprint, TodoStatus, TodoPriority, TodoType, StoryPoints } from '../types/api';
 import { TODO_STATUSES, TODO_PRIORITIES, TODO_TYPES, STORY_POINTS } from '../types/api';
 import { Spinner } from './ui/Spinner';
+import { ModalOverlay } from './ui/ModalOverlay';
 import { useLang } from '../context/LanguageContext';
 
 interface Props {
@@ -103,11 +104,10 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
-    >
-      <div className="bg-white dark:bg-surface-700 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+
+    <ModalOverlay open={open} onClose={handleClose}>
+      <div className="bg-white dark:bg-surface-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+           onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200 dark:border-surface-600">
           <span className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-mono px-2 py-1 rounded">{todo.key}</span>
@@ -195,6 +195,6 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
           </div>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

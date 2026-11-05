@@ -10,6 +10,8 @@ import { Modal } from '../components/ui/Modal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { CompleteSprintModal } from '../components/ai/CompleteSprintModal';
 import { useToast } from '../components/ui/Toast';
+import { SprintsSkeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
 
 /* ── status helpers ───────────────────────────────────── */
@@ -95,6 +97,7 @@ export function SprintsPage() {
 
   const [list, setList]           = useState<Sprint[]>([]);
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [selected, setSelected]   = useState<Sprint | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [aiOpen, setAiOpen]       = useState(false);
@@ -104,9 +107,13 @@ export function SprintsPage() {
 
   const load = useCallback(async () => {
     if (!projectId) return;
-    const data = await sprintsApi.list(projectId);
-    setList(data);
-    setLoading(false);
+    setLoadError('');
+    try {
+      const data = await sprintsApi.list(projectId);
+      setList(data);
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : 'Failed to load sprints');
+    } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
@@ -132,9 +139,8 @@ export function SprintsPage() {
     } finally { setSummarizing(false); }
   };
 
-  if (loading) return (
-    <div className="flex-1 flex items-center justify-center"><Spinner size="lg" /></div>
-  );
+  if (loading) return <SprintsSkeleton />;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   const plannedSprints  = list.filter((s) => s.status === 'planned');
   const stats           = selected?.status === 'completed'

@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { sprints as sprintsApi, ai as aiApi } from '../../lib/api';
 import type { Sprint } from '../../types/api';
 import { Spinner } from '../ui/Spinner';
+import { ModalOverlay } from '../ui/ModalOverlay';
 import { useLang } from '../../context/LanguageContext';
 
 interface Props {
@@ -19,8 +20,6 @@ export function CompleteSprintModal({ sprint, plannedSprints, open, onClose, onC
   const [generateSummary, setGenerateSummary]   = useState(true);
   const [loading, setLoading]                   = useState(false);
   const [error, setError]                       = useState('');
-
-  if (!open) return null;
 
   const doneTodos   = sprint.stats.doneTodos;
   const totalTodos  = sprint.stats.totalTodos;
@@ -42,8 +41,9 @@ export function CompleteSprintModal({ sprint, plannedSprints, open, onClose, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-surface-700 rounded-lg shadow-xl w-full max-w-md">
+    <ModalOverlay open={open} onClose={onClose}>
+      <div className="bg-white dark:bg-surface-700 rounded-2xl shadow-2xl w-full max-w-md"
+           onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-surface-600">
           <h2 className="font-semibold text-gray-900 dark:text-white">{t.ai.completeTitle(sprint.name)}</h2>
@@ -96,6 +96,6 @@ export function CompleteSprintModal({ sprint, plannedSprints, open, onClose, onC
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

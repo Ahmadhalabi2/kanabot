@@ -4,6 +4,7 @@ import { ai as aiApi, todos as todosApi } from '../../lib/api';
 import type { DraftTodo, TodoType, TodoPriority } from '../../types/api';
 import { TODO_TYPES, TODO_PRIORITIES, STORY_POINTS } from '../../types/api';
 import { Spinner } from '../ui/Spinner';
+import { ModalOverlay } from '../ui/ModalOverlay';
 import { useLang } from '../../context/LanguageContext';
 
 interface Props { projectId: string; open: boolean; onClose: () => void; onSaved: () => void; }
@@ -54,8 +55,9 @@ export function GenerateTodosModal({ projectId, open, onClose, onSaved }: Props)
   const totalPts = drafts.filter((d) => d.selected).reduce((s, d) => s + (d.storyPoints ?? 0), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-surface-700 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+    <ModalOverlay open={open} onClose={onClose}>
+      <div className="bg-white dark:bg-surface-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+           onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 dark:border-surface-600">
           <Sparkles size={16} className="text-gray-700 dark:text-gray-300" />
@@ -120,6 +122,6 @@ export function GenerateTodosModal({ projectId, open, onClose, onSaved }: Props)
           </div>
         )}
       </div>
-    </div>
+    </ModalOverlay>
   );
 }

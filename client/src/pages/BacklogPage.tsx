@@ -13,6 +13,8 @@ import { PlanSprintModal } from '../components/ai/PlanSprintModal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { TodoDetailModal } from '../components/TodoDetailModal';
 import { useToast } from '../components/ui/Toast';
+import { BacklogSkeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
 // import { FilterSelect } from '../components/ui/FilterSelect';
 // import type { FilterOption } from '../components/ui/FilterSelect';
@@ -228,6 +230,7 @@ export function BacklogPage() {
   const [backlog, setBacklog]   = useState<Todo[]>([]);
   const [sprints, setSprints]   = useState<Sprint[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch]     = useState('');
   const debouncedSearch         = useDebounce(search, 300);
   const [filterPri, setFilterPri]   = useState<TodoPriority | ''>('');
@@ -242,12 +245,17 @@ export function BacklogPage() {
 
   const load = useCallback(async () => {
     if (!projectId) return;
-    const [allTodos, allSprints] = await Promise.all([todosApi.list(projectId), sprintsApi.list(projectId)]);
-    setSprints(allSprints);
-    const map: Record<string, Todo[]> = {};
-    const bl: Todo[] = [];
-    for (const t of allTodos) { if (t.sprintId) { (map[t.sprintId] ??= []).push(t); } else { bl.push(t); } }
-    setTodoMap(map); setBacklog(bl); setLoading(false);
+    setLoadError('');
+    try {
+      const [allTodos, allSprints] = await Promise.all([todosApi.list(projectId), sprintsApi.list(projectId)]);
+      setSprints(allSprints);
+      const map: Record<string, Todo[]> = {};
+      const bl: Todo[] = [];
+      for (const t of allTodos) { if (t.sprintId) { (map[t.sprintId] ??= []).push(t); } else { bl.push(t); } }
+      setTodoMap(map); setBacklog(bl);
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : 'Failed to load backlog');
+    } finally { setLoading(false); }
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
@@ -268,7 +276,8 @@ export function BacklogPage() {
   const done       = sprints.filter((s) => s.status === 'completed');
   const blPts      = backlog.reduce((s, t) => s + (t.storyPoints ?? 0), 0);
 
-  if (loading) return <div className="flex-1 flex items-center justify-center"><Spinner size="lg" /></div>;
+  if (loading) return <BacklogSkeleton />;
+  if (loadError) return <ErrorState message={loadError} onRetry={load} />;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
