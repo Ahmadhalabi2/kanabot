@@ -15,7 +15,6 @@ import { Spinner } from '../components/ui/Spinner';
 import { TodoDetailModal } from '../components/TodoDetailModal';
 import { AiDrawer } from '../components/ai/AiDrawer';
 import { CompleteSprintModal } from '../components/ai/CompleteSprintModal';
-import { useToast } from '../components/ui/Toast';
 import { BoardSkeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
@@ -129,7 +128,7 @@ function Column({
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
-    <div className="flex flex-col flex-1 min-w-[220px] max-w-xs">
+    <div className="flex flex-col flex-1 min-w-[160px] sm:min-w-[220px] max-w-xs">
       {/* column header */}
       <div className={`flex items-center justify-between mb-3
                        pb-2.5 border-b-2 ${accent}`}>
@@ -177,7 +176,6 @@ export function BoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate      = useNavigate();
   const { t }         = useLang();
-  const toast         = useToast();
   const COLUMNS       = getColumns(t);
 
   const [board, setBoard]       = useState<SprintBoardResponse | null>(null);
@@ -311,7 +309,7 @@ export function BoardPage() {
       </div>
 
       {/* ── Sprint info bar ── */}
-      <div className="px-6 pt-4 pb-3 shrink-0
+      <div className="px-4 sm:px-6 pt-4 pb-3 shrink-0
                       bg-white dark:bg-surface-850
                       border-b border-gray-200/60 dark:border-surface-600/50">
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -326,7 +324,7 @@ export function BoardPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {sprint.startDate && sprint.endDate && (
               <span className="text-xs text-gray-400 dark:text-gray-300">
                 {sprint.startDate} → {sprint.endDate}
@@ -359,7 +357,7 @@ export function BoardPage() {
       </div>
 
       {/* ── Board ── */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-3 sm:p-6">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}

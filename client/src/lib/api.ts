@@ -50,8 +50,17 @@ http.interceptors.response.use(
     const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
     if (status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('kanbot_token');
-      const redirect = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = `/login?redirect=${redirect}&expired=1`;
+      // Base-aware redirect: strip the basename prefix from the current path so
+      // the login page can navigate back to it via react-router, and prefix the
+      // login URL with the base path so it works under a subpath (e.g. GitHub
+      // Pages project site at "/kanabot/").
+      const base = import.meta.env.BASE_URL;
+      const basePrefix = base.replace(/\/+$/, '');
+      const stripped = window.location.pathname.startsWith(basePrefix)
+        ? window.location.pathname.slice(basePrefix.length) || '/'
+        : window.location.pathname;
+      const redirect = encodeURIComponent(stripped + window.location.search);
+      window.location.href = `${base}login?redirect=${redirect}&expired=1`;
     }
     const msg = err.response?.data?.error?.message ?? err.message ?? 'Something went wrong';
     const code = err.response?.data?.error?.code ?? 'INTERNAL_ERROR';

@@ -1,0 +1,72 @@
+name: Deploy client (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - '.github/workflows/deploy-client.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent Pages deployment at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Verify build config
+        env:
+          API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::error::VITE_API_URL is not set. Add a repository variable/secret VITE_API_URL with your Railway backend URL (e.g. https://your-app.up.railway.app/api) and re-run this workflow."
+            exit 1
+          fi
+          echo "VITE_API_URL is set."
+
+      - name: Build
+        working-directory: client
+        env:
+          # The Railway backend API base URL (build-time; Vite inlines VITE_ vars).
+          VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL }}
+          # Subpath for a GitHub Pages project site. Defaults to /kanabot/ (repo name).
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || secrets.VITE_BASE_PATH || '/kanabot/' }}
+        run: npm run build
+
+      # GitHub Pages serves a static 404 for unknown paths. Copying index.html
+      # to 404.html makes deep links and refreshes load the SPA instead.
+      - name: SPA fallback
+        run: cp client/dist/index.html client/dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
