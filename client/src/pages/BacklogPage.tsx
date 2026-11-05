@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Plus, Search, X, Sparkles, Zap, MoreHorizontal, GripVertical, Bot } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Search, X, Sparkles, Zap, MoreHorizontal, GripVertical, Bot, Trash2 } from 'lucide-react';
 import { todos as todosApi, sprints as sprintsApi } from '../lib/api';
 import type { Todo, Sprint, TodoPriority, TodoType } from '../types/api';
 import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { FilterSelect } from '../components/ui/FilterSelect';
 import type { FilterOption } from '../components/ui/FilterSelect';
 import { useDebounce } from '../hooks/useDebounce';
@@ -16,8 +17,6 @@ import { useToast } from '../components/ui/Toast';
 import { BacklogSkeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { useLang } from '../context/LanguageContext';
-// import { FilterSelect } from '../components/ui/FilterSelect';
-// import type { FilterOption } from '../components/ui/FilterSelect';
 
 const PRIORITY_PILL: Record<TodoPriority, string> = {
   low:    'bg-gray-100 text-gray-500 dark:bg-surface-600 dark:text-gray-400',
@@ -111,7 +110,7 @@ function CreateSprintForm({ projectId, onCreated, onCancel }: { projectId: strin
         <label className="label">{t.backlog.sprintGoal}</label>
         <input className="input" value={form.goal} onChange={(e) => set('goal', e.target.value)} placeholder={t.backlog.sprintGoalPlaceholder} maxLength={300} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className="label">{t.backlog.startDate}</label><input type="date" className="input" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} /></div>
         <div><label className="label">{t.backlog.endDate}</label><input type="date" className="input" value={form.endDate} onChange={(e) => set('endDate', e.target.value)} /></div>
       </div>
@@ -123,15 +122,19 @@ function CreateSprintForm({ projectId, onCreated, onCancel }: { projectId: strin
   );
 }
 
-function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, onSprintUpdated }: {
+function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, onSprintUpdated, onSprintDeleted }: {
   sprint: Sprint; todos: Todo[]; projectId: string;
-  onTodoOpen: (t: Todo) => void; onTodoCreated: (t: Todo) => void; onSprintUpdated: (s: Sprint) => void;
+  onTodoOpen: (t: Todo) => void; onTodoCreated: (t: Todo) => void;
+  onSprintUpdated: (s: Sprint) => void; onSprintDeleted: (id: string) => void;
 }) {
   const navigate = useNavigate();
   const { t } = useLang();
+  const toast = useToast();
   const [expanded, setExpanded]         = useState(true);
   const [inline, setInline]             = useState(false);
   const [startOpen, setStartOpen]       = useState(false);
+  const [deleteOpen, setDeleteOpen]     = useState(false);
+  const [deleting, setDeleting]         = useState(false);
   const [startForm, setStartForm]       = useState({ startDate: '', endDate: '' });
   const [startLoading, setStartLoading] = useState(false);
   const [startError, setStartError]     = useState('');
@@ -153,9 +156,20 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
     } finally { setStartLoading(false); }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await sprintsApi.delete(sprint.id);
+      onSprintDeleted(sprint.id);
+      toast.success(`Sprint "${sprint.name}" deleted.`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete sprint');
+    } finally { setDeleting(false); setDeleteOpen(false); }
+  };
+
   return (
     <div>
-      <div className="flex items-center gap-2 px-4 py-2.5 sticky top-14 z-10
+      <div className="flex items-center gap-2 px-4 py-2.5 sticky top-[100px] z-10
                       bg-gray-50/95 dark:bg-surface-900/95 backdrop-blur-sm
                       border-b border-gray-200/60 dark:border-surface-600/40">
         <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={() => setExpanded((e) => !e)}>
@@ -170,7 +184,18 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
         {sprint.startDate && sprint.endDate && <span className="text-[11px] text-gray-400 dark:text-gray-500">{sprint.startDate} → {sprint.endDate}</span>}
         <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-1">· {t.backlog.todosCount(todos.length, pts)}</span>
         <div className="ml-auto flex items-center gap-2">
-          {sprint.status === 'planned' && <button className="btn-primary text-xs py-1 px-3" onClick={() => setStartOpen(true)}>{t.backlog.startSprint}</button>}
+          {sprint.status === 'planned' && (
+            <>
+              <button className="btn-primary text-xs py-1 px-3" onClick={() => setStartOpen(true)}>{t.backlog.startSprint}</button>
+              <button
+                className="btn-ghost w-7 h-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg"
+                onClick={() => setDeleteOpen(true)}
+                title="Delete sprint"
+              >
+                <Trash2 size={13} />
+              </button>
+            </>
+          )}
           {sprint.status === 'active' && <button className="btn-secondary text-xs py-1 px-3" onClick={() => navigate(`/projects/${projectId}/board`)}>{t.board.title}</button>}
         </div>
       </div>
@@ -197,7 +222,7 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
             Starting <span className="font-semibold text-gray-800 dark:text-gray-200">{sprint.name}</span> with {todos.length} todos.
           </p>
           {startError && <p className="text-sm text-red-500">{startError}</p>}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="label">{t.backlog.startDate}</label>
               <input type="date" className="input" value={startForm.startDate}
@@ -218,6 +243,17 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
           </div>
         </form>
       </Modal>
+      {/* ── Delete Sprint Dialog ── */}
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Sprint"
+        message={`Delete "${sprint.name}"? All ${todos.length} todos will be moved back to the backlog.`}
+        confirmLabel="Delete sprint"
+        danger
+        loading={deleting}
+      />
     </div>
   );
 }
@@ -242,6 +278,8 @@ export function BacklogPage() {
   const [planOpen, setPlanOpen]     = useState(false);
   const [sprintOpen, setSprintOpen] = useState(false);
   const [aiOpen, setAiOpen]         = useState(false);
+  const [clearOpen, setClearOpen]   = useState(false);
+  const [clearing, setClearing]     = useState(false);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -269,6 +307,24 @@ export function BacklogPage() {
     }
     return true;
   });
+
+  const handleSprintDeleted = (id: string) => {
+    setSprints((p) => p.filter((s) => s.id !== id));
+    setTodoMap((p) => { const n = { ...p }; delete n[id]; return n; });
+    load(); // reload to get todos moved back to backlog
+  };
+
+  const handleClearBacklog = async () => {
+    if (!projectId) return;
+    setClearing(true);
+    try {
+      await Promise.all(backlog.map((t) => todosApi.delete(t.id)));
+      setBacklog([]);
+      toast.success(`Cleared ${backlog.length} todos from backlog.`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to clear backlog');
+    } finally { setClearing(false); setClearOpen(false); }
+  };
 
   const totalTodos = backlog.length + Object.values(todoMap).flat().length;
   const totalPts   = [...backlog, ...Object.values(todoMap).flat()].reduce((s, t) => s + (t.storyPoints ?? 0), 0);
@@ -330,15 +386,25 @@ export function BacklogPage() {
           <SprintSection key={sprint.id} sprint={sprint} todos={filter(todoMap[sprint.id] ?? [])} projectId={projectId!}
             onTodoOpen={setSelected}
             onTodoCreated={(t) => setTodoMap((p) => ({ ...p, [sprint.id]: [...(p[sprint.id] ?? []), t] }))}
-            onSprintUpdated={(s) => setSprints((p) => p.map((x) => (x.id === s.id ? s : x)))} />
+            onSprintUpdated={(s) => setSprints((p) => p.map((x) => (x.id === s.id ? s : x)))}
+            onSprintDeleted={handleSprintDeleted} />
         ))}
         <div>
-          <div className="flex items-center gap-2 px-4 py-2.5 sticky top-14 z-10 bg-gray-50/95 dark:bg-surface-900/95 backdrop-blur-sm border-b border-gray-200/60 dark:border-surface-600/40">
+          <div className="flex items-center gap-2 px-4 py-2.5 sticky top-[100px] z-10 bg-gray-50/95 dark:bg-surface-900/95 backdrop-blur-sm border-b border-gray-200/60 dark:border-surface-600/40">
             <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={() => setBlExpanded((e) => !e)}>
               {blExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
             <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">{t.backlog.title}</span>
             <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-1">· {t.backlog.todosCount(backlog.length, blPts)}</span>
+            {backlog.length > 0 && (
+              <button
+                className="ml-auto btn-ghost w-7 h-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg"
+                onClick={() => setClearOpen(true)}
+                title="Clear all backlog todos"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
           </div>
           {blExpanded && (
             <div>
@@ -371,6 +437,18 @@ export function BacklogPage() {
         projectId={projectId!}
         onGenerateTodos={() => { setAiOpen(false); setGenOpen(true); }}
         onPlanSprint={() => { setAiOpen(false); setPlanOpen(true); }}
+      />
+
+      {/* Clear backlog confirm */}
+      <ConfirmDialog
+        open={clearOpen}
+        onClose={() => setClearOpen(false)}
+        onConfirm={handleClearBacklog}
+        title="Clear Backlog"
+        message={`Delete all ${backlog.length} todo${backlog.length !== 1 ? 's' : ''} from the backlog? This cannot be undone.`}
+        confirmLabel="Clear all"
+        danger
+        loading={clearing}
       />
     </div>
   );

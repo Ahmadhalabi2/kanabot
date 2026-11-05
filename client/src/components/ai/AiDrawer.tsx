@@ -45,7 +45,7 @@ export function AiDrawer({ open, onClose, projectId, activeSprint, onGenerateTod
     <>
       {open && <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />}
 
-      <div className={`fixed top-0 end-0 h-full w-96 bg-white dark:bg-surface-700 border-s border-gray-200 dark:border-surface-600 shadow-xl z-50 flex flex-col transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none invisible'}`}>
+      <div className={`fixed top-0 end-0 h-full w-full sm:w-96 bg-white dark:bg-surface-700 border-s border-gray-200 dark:border-surface-600 shadow-xl z-50 flex flex-col transition-opacity duration-200 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none invisible'}`}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-surface-600 shrink-0">
           <span className="text-sm font-semibold text-gray-900 dark:text-white">{t.ai.assistantTitle}</span>

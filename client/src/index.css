@@ -130,7 +130,7 @@
   /* ── Todo row ── */
   .todo-row {
     @apply flex items-center gap-3 px-4 py-2.5
-           border-b cursor-pointer transition-all;
+           border-b cursor-pointer transition-all relative z-0;
     border-bottom-color: #efeef8;
   }
   .todo-row:hover { background-color: #f5f4ff; }

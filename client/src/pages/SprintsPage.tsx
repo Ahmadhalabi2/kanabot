@@ -64,7 +64,7 @@ function CreateSprintForm({ projectId, onCreated, onCancel }: { projectId: strin
         <label className="label">{t.sprints.goal}</label>
         <input className="input" value={form.goal} onChange={(e) => set('goal', e.target.value)} placeholder={t.sprints.goalPlaceholder} maxLength={300} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label className="label">{t.sprints.startDate}</label><input type="date" className="input" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} /></div>
         <div><label className="label">{t.sprints.endDate}</label><input type="date" className="input" value={form.endDate} onChange={(e) => set('endDate', e.target.value)} /></div>
       </div>
@@ -170,12 +170,13 @@ export function SprintsPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
 
         {/* ── Left: sprint list ── */}
-        <div className="w-64 shrink-0 flex flex-col
-                        border-r border-gray-200/60 dark:border-surface-600/50
-                        bg-white dark:bg-surface-850 overflow-y-auto">
+        <div className="w-full md:w-64 md:shrink-0 flex flex-col
+                        border-b md:border-b-0 md:border-r border-gray-200/60 dark:border-surface-600/50
+                        bg-white dark:bg-surface-850
+                        max-h-[40vh] md:max-h-none overflow-y-auto">
           <div className="p-3 space-y-1">
             <p className="section-label">{t.sprints.allSprints}</p>
 
@@ -220,7 +221,7 @@ export function SprintsPage() {
         </div>
 
         {/* ── Right: detail ── */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {!selected ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-sm text-gray-400 dark:text-gray-300">

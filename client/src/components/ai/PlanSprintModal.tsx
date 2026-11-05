@@ -77,22 +77,22 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex items-end gap-3 mb-5">
-            <div className="w-36">
+          <div className="flex items-end gap-3 mb-5 flex-wrap">
+            <div className="w-full sm:w-36">
               <label className="label">{t.ai.capacityLabel}</label>
               <input type="number" className="input" min={1} max={200} value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} />
             </div>
-            <div className="w-36">
+            <div className="w-full sm:w-36">
               <label className="label">{t.ai.sprintLengthLabel}</label>
               <select className="input" value={sprintLength} onChange={(e) => setSprintLength(e.target.value)}>
                 {SPRINT_LENGTHS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[200px]">
               <label className="label">{t.ai.focusLabel}</label>
               <input className="input" value={focus} onChange={(e) => setFocus(e.target.value)} placeholder={t.ai.focusPlaceholderModal} maxLength={300} />
             </div>
-            <button className="btn-primary whitespace-nowrap" onClick={suggest} disabled={generating}>
+            <button className="btn-primary w-full sm:w-auto whitespace-nowrap" onClick={suggest} disabled={generating}>
               {generating ? <Spinner size="sm" /> : <Zap size={14} />} {t.ai.suggestPlanBtn}
             </button>
           </div>
@@ -107,7 +107,7 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
           )}
 
           {displayTodos.length > 0 && (
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t.ai.selectedBacklogTodos}</p>
                 <div className="border border-gray-200 dark:border-surface-600 rounded-lg overflow-hidden">
@@ -137,7 +137,7 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
               </div>
 
               {plan?.reasoning && (
-                <div className="w-64 shrink-0">
+                <div className="w-full md:w-64 md:shrink-0">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t.ai.whyThisPlan}</p>
                   <div className="border border-gray-200 dark:border-surface-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-600 dark:text-gray-400 leading-relaxed h-full">
                     <p className="text-xs text-gray-400 font-medium mb-2">{t.ai.aiReasoning}</p>

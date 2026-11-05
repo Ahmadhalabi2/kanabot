@@ -124,21 +124,21 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
         )}
 
         {/* Body */}
-        <div className="flex flex-1 overflow-y-auto divide-x divide-gray-100 dark:divide-gray-700">
+        <div className="flex flex-col md:flex-row flex-1 overflow-y-auto divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-700">
           {/* Left */}
-          <div className="flex-1 p-6 space-y-4">
+          <div className="flex-1 p-4 md:p-6 space-y-4">
             <div>
               <label className="label">{t.todo.title}</label>
               <input className="input text-base font-medium" value={form.title} onChange={(e) => set('title', e.target.value)} />
             </div>
             <div>
               <label className="label">{t.todo.description}</label>
-              <textarea className="input resize-none" rows={10} value={form.description} onChange={(e) => set('description', e.target.value)} placeholder={t.todo.descriptionPlaceholder} />
+              <textarea className="input resize-none" rows={6} value={form.description} onChange={(e) => set('description', e.target.value)} placeholder={t.todo.descriptionPlaceholder} />
             </div>
           </div>
 
           {/* Right */}
-          <div className="w-72 shrink-0 p-6 space-y-4">
+          <div className="w-full md:w-72 md:shrink-0 p-4 md:p-6 space-y-4">
             <div>
               <label className="label">{t.todo.status}</label>
               <select className="input" value={form.status} onChange={(e) => set('status', e.target.value)}>

@@ -87,6 +87,8 @@ export function GenerateTodosModal({ projectId, open, onClose, onSaved }: Props)
                   {drafts.every((d) => d.selected) ? t.ai.deselectAll : t.ai.selectAll}
                 </button>
               </div>
+              <div className="overflow-x-auto">
+              <div className="min-w-[420px]">
               <div className="grid grid-cols-[24px_1fr_100px_100px_70px] gap-2 px-2 py-1 text-xs text-gray-400 font-medium border-b border-gray-200 dark:border-surface-600">
                 <span /><span>{t.ai.tableTitle}</span><span>{t.ai.tableType}</span><span>{t.ai.tablePriority}</span><span>{t.ai.tablePts}</span>
               </div>
@@ -105,6 +107,8 @@ export function GenerateTodosModal({ projectId, open, onClose, onSaved }: Props)
                   />
                 </div>
               ))}
+              </div>
+              </div>
             </div>
           )}
         </div>

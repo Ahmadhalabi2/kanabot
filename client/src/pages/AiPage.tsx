@@ -104,7 +104,7 @@ function ChatTab({ projectId, messages, setMessages }: {
   };
 
   return (
-    <div className="flex flex-col h-[560px]">
+    <div className="flex flex-col h-[70vh] sm:h-[560px]">
       <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white dark:bg-surface-850">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-3">
@@ -233,11 +233,13 @@ function GenerateTab({ projectId }: { projectId: string }) {
             </div>
           </div>
           <div className="border border-gray-200 dark:border-surface-600 rounded-lg overflow-hidden">
-            <div className="grid grid-cols-[20px_1fr_90px_90px_60px] gap-2 px-3 py-1.5 bg-gray-50 dark:bg-surface-700 text-xs text-gray-400 font-medium border-b border-gray-200 dark:border-surface-600">
+            <div className="overflow-x-auto">
+            <div className="min-w-[380px]">
+            <div className="grid grid-cols-[20px_1fr_80px_80px_56px] gap-2 px-3 py-1.5 bg-gray-50 dark:bg-surface-700 text-xs text-gray-400 font-medium border-b border-gray-200 dark:border-surface-600">
               <span /><span>{t.ai.tableTitle}</span><span>{t.ai.tableType}</span><span>{t.ai.tablePriority}</span><span>{t.ai.tablePts}</span>
             </div>
             {drafts.map((d, i) => (
-              <div key={i} className={`grid grid-cols-[20px_1fr_90px_90px_60px] gap-2 items-center px-3 py-2 border-b border-gray-100 dark:border-surface-600 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors ${!d.selected ? 'opacity-40' : ''}`}>
+              <div key={i} className={`grid grid-cols-[20px_1fr_80px_80px_56px] gap-2 items-center px-3 py-2 border-b border-gray-100 dark:border-surface-600 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors ${!d.selected ? 'opacity-40' : ''}`}>
                 <input type="checkbox" checked={d.selected} onChange={() => toggle(i)} className="accent-gray-900 dark:accent-gray-100 w-3.5 h-3.5" />
                 <input className="input text-sm py-1" value={d.title} onChange={(e) => updateField(i, 'title', e.target.value)} />
                 <select className="input text-xs py-1" value={d.type} onChange={(e) => updateField(i, 'type', e.target.value)}>
@@ -251,6 +253,8 @@ function GenerateTab({ projectId }: { projectId: string }) {
                 />
               </div>
             ))}
+            </div>
+            </div>
           </div>
         </div>
       )}
@@ -294,16 +298,16 @@ function PlanTab({ projectId }: { projectId: string }) {
   return (
     <div className="p-5 space-y-5 bg-white dark:bg-surface-850">
       <form onSubmit={suggest} className="space-y-3">
-        <div className="flex gap-3 items-end">
-          <div className="w-40">
+        <div className="flex gap-3 items-end flex-wrap">
+          <div className="w-full sm:w-40">
             <label className="label">{t.ai.capacity}</label>
             <input type="number" className="input" min={1} max={200} value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-[200px]">
             <label className="label">{t.ai.focus}</label>
             <input className="input" value={focus} onChange={(e) => setFocus(e.target.value)} placeholder={t.ai.focusPlaceholder} maxLength={300} />
           </div>
-          <button type="submit" className="btn-primary whitespace-nowrap" disabled={loading}>
+          <button type="submit" className="btn-primary w-full sm:w-auto whitespace-nowrap" disabled={loading}>
             {loading ? <Spinner size="sm" /> : <Zap size={14} />} {t.ai.suggestPlan}
           </button>
         </div>
@@ -485,13 +489,13 @@ export function AiPage() {
         </div>
       </div>
 
-      <div className="p-6 max-w-4xl">
-        <div className="flex gap-0 mb-0 border-b border-gray-200 dark:border-surface-600">
+      <div className="p-4 sm:p-6 max-w-4xl">
+        <div className="flex gap-0 mb-0 border-b border-gray-200 dark:border-surface-600 overflow-x-auto">
           {tabs.map((tb) => (
             <button
               key={tb.id}
               onClick={() => setTab(tb.id)}
-              className={`px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0 ${
                 tab === tb.id
                   ? 'border-gray-900 dark:border-gray-100 text-gray-900 dark:text-gray-100'
                   : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
