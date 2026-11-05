@@ -5,6 +5,7 @@ import type { Todo, Sprint, TodoStatus, TodoPriority, TodoType, StoryPoints } fr
 import { TODO_STATUSES, TODO_PRIORITIES, TODO_TYPES, STORY_POINTS } from '../types/api';
 import { Spinner } from './ui/Spinner';
 import { ModalOverlay } from './ui/ModalOverlay';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 import { useLang } from '../context/LanguageContext';
 
 interface Props {
@@ -33,13 +34,15 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
   const [saving, setSaving]     = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError]       = useState('');
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [confirmDelete, setConfirmDelete]   = useState(false);
 
   if (!open) return null;
 
   const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
 
   const handleClose = () => {
-    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return;
+    if (isDirty) { setConfirmDiscard(true); return; }
     onClose();
   };
 
@@ -67,7 +70,6 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
   };
 
   const handleDelete = async () => {
-    if (!confirm(t.todo.deleteConfirm(todo.title))) return;
     setDeleting(true);
     try {
       await todosApi.delete(todo.id);
@@ -104,7 +106,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
   };
 
   return (
-
+    <>
     <ModalOverlay open={open} onClose={handleClose}>
       <div className="bg-white dark:bg-surface-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
            onClick={(e) => e.stopPropagation()}>
@@ -184,7 +186,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-surface-600">
-          <button className="btn-danger" onClick={handleDelete} disabled={deleting}>
+          <button className="btn-danger" onClick={() => setConfirmDelete(true)} disabled={deleting}>
             {deleting ? <Spinner size="sm" /> : null} {t.common.delete}
           </button>
           <div className="flex gap-2">
@@ -196,5 +198,28 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
         </div>
       </div>
     </ModalOverlay>
+
+    {/* Discard unsaved changes */}
+    <ConfirmDialog
+      open={confirmDiscard}
+      onClose={() => setConfirmDiscard(false)}
+      onConfirm={() => { setConfirmDiscard(false); onClose(); }}
+      title="Discard changes?"
+      message="You have unsaved changes. Are you sure you want to discard them?"
+      confirmLabel="Discard"
+    />
+
+    {/* Delete todo */}
+    <ConfirmDialog
+      open={confirmDelete}
+      onClose={() => setConfirmDelete(false)}
+      onConfirm={() => { setConfirmDelete(false); handleDelete(); }}
+      title={t.todo.deleteConfirm(todo.title)}
+      message="This action cannot be undone."
+      confirmLabel={t.common.delete}
+      danger
+      loading={deleting}
+    />
+  </>
   );
 }

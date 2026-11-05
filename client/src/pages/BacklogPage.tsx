@@ -28,7 +28,17 @@ const TYPE_PILL: Record<TodoType, string> = {
   task:  'bg-gray-100 text-gray-500 dark:bg-surface-600 dark:text-gray-400',
   story: 'bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400',
   bug:   'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400',
-};function TodoRow({ todo, onOpen }: { todo: Todo; onOpen: (t: Todo) => void }) {
+};
+
+// Sticky section header: solid background (no transparency / blur) so rows
+// scrolling underneath are fully hidden. top-0 because the scroll container
+// (flex-1 overflow-y-auto) starts right below the page header + filter bar.
+const STICKY_HEADER =
+  'flex items-center gap-2 px-4 py-2.5 w-full sticky top-0 z-10 ' +
+  'bg-gray-50 dark:bg-surface-900 ' +
+  'border-b border-gray-200/60 dark:border-surface-600/40';
+
+function TodoRow({ todo, onOpen }: { todo: Todo; onOpen: (t: Todo) => void }) {
   const { t } = useLang();
   return (
     <div className="todo-row" onClick={() => onOpen(todo)}>
@@ -169,9 +179,7 @@ function SprintSection({ sprint, todos, projectId, onTodoOpen, onTodoCreated, on
 
   return (
     <div>
-      <div className="flex items-center gap-2 px-4 py-2.5 sticky top-[100px] z-10
-                      bg-gray-50/95 dark:bg-surface-900/95 backdrop-blur-sm
-                      border-b border-gray-200/60 dark:border-surface-600/40">
+      <div className={STICKY_HEADER}>
         <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={() => setExpanded((e) => !e)}>
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
@@ -390,7 +398,7 @@ export function BacklogPage() {
             onSprintDeleted={handleSprintDeleted} />
         ))}
         <div>
-          <div className="flex items-center gap-2 px-4 py-2.5 sticky top-[100px] z-10 bg-gray-50/95 dark:bg-surface-900/95 backdrop-blur-sm border-b border-gray-200/60 dark:border-surface-600/40">
+          <div className={STICKY_HEADER}>
             <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onClick={() => setBlExpanded((e) => !e)}>
               {blExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
