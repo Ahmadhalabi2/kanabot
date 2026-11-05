@@ -13,50 +13,34 @@ import type { ProjectWithStats } from '../../types/api';
 import logoLight from '../../assets/kanbot-logo.svg';
 import logoDark  from '../../assets/kanbot-logo-dark.svg';
 
-export function AppLayout() {
-  const { user, logout }            = useAuth();
-  const { lang, toggleLang, t }     = useLang();
-  const [dark, setDark]             = useDarkMode();
-  const navigate                    = useNavigate();
-  const location                    = useLocation();
-  const { projectId }               = useParams();
-  const [allProjects, setAll]       = useState<ProjectWithStats[]>([]);
-  const [current, setCurrent]       = useState<ProjectWithStats | null>(null);
-  const [switcherOpen, setSwitch]   = useState(false);
-  const [menuOpen, setMenuOpen]     = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const menuRef                     = useRef<HTMLDivElement>(null);
+/* ── Module-level SidebarContent — avoids remount on parent state changes ── */
+interface SidebarContentProps {
+  dark: boolean;
+  user: { name?: string; email?: string } | null;
+  lang: string;
+  t: ReturnType<typeof useLang>['t'];
+  projectId: string | undefined;
+  current: ProjectWithStats | null;
+  allProjects: ProjectWithStats[];
+  switcherOpen: boolean;
+  setSwitch: (open: boolean) => void;
+  menuOpen: boolean;
+  setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  menuRef: React.RefObject<HTMLDivElement>;
+  projectNav: { to: string; icon: React.ReactNode; label: string }[];
+  setSidebarOpen: (open: boolean) => void;
+  handleLogout: () => void;
+  toggleLang: () => void;
+  setDark: React.Dispatch<React.SetStateAction<boolean>>;
+  navigate: ReturnType<typeof useNavigate>;
+}
 
-  // Close mobile sidebar on route change
-  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
-
-  // Close user menu on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  useEffect(() => {
-    projectsApi.list().then((list) => {
-      setAll(list);
-      if (projectId) setCurrent(list.find((p) => p.id === projectId) ?? null);
-    });
-  }, [projectId]);
-
-  const handleLogout = () => { logout(); navigate('/login'); };
-
-  const projectNav = projectId ? [
-    { to: `/projects/${projectId}/backlog`,  icon: <ListTodo     size={15} />, label: t.nav.backlog      },
-    { to: `/projects/${projectId}/board`,    icon: <Zap          size={15} />, label: t.nav.activeSprint },
-    { to: `/projects/${projectId}/sprints`,  icon: <FolderKanban size={15} />, label: t.nav.sprints      },
-    { to: `/projects/${projectId}/ai`,       icon: <Bot          size={15} />, label: t.nav.aiAssistant  },
-  ] : [];
-
-  /* ── Sidebar inner content (shared between desktop & mobile) ── */
-  const SidebarContent = () => (
+function SidebarContent({
+  dark, user, lang, t, projectId, current, allProjects,
+  switcherOpen, setSwitch, menuOpen, setMenuOpen, menuRef,
+  projectNav, setSidebarOpen, handleLogout, toggleLang, setDark, navigate,
+}: SidebarContentProps) {
+  return (
     <>
       {/* Logo row */}
       <div className="h-14 flex items-center justify-between px-4 shrink-0"
@@ -66,7 +50,7 @@ export function AppLayout() {
         </Link>
         {/* Close button — only visible on mobile */}
         <button
-          className="md:hidden p-1.5 rounded-lg"
+          className="md:hidden p-2.5 rounded-lg"
           style={{ color: 'var(--text-muted)' }}
           onClick={() => setSidebarOpen(false)}
           aria-label="Close menu"
@@ -79,7 +63,7 @@ export function AppLayout() {
       {projectId && (
         <div className="px-2 pt-3 relative">
           <button
-            onClick={() => setSwitch((o) => !o)}
+            onClick={() => setSwitch(!switcherOpen)}
             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors"
             style={{ color: 'var(--text-secondary)' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--hover-bg)')}
@@ -215,6 +199,50 @@ export function AppLayout() {
       </div>
     </>
   );
+}
+
+/* ── AppLayout ── */
+export function AppLayout() {
+  const { user, logout }              = useAuth();
+  const { lang, toggleLang, t }       = useLang();
+  const [dark, setDark]               = useDarkMode();
+  const navigate                      = useNavigate();
+  const location                      = useLocation();
+  const { projectId }                 = useParams();
+  const [allProjects, setAll]         = useState<ProjectWithStats[]>([]);
+  const [current, setCurrent]         = useState<ProjectWithStats | null>(null);
+  const [switcherOpen, setSwitch]     = useState(false);
+  const [menuOpen, setMenuOpen]       = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const menuRef                       = useRef<HTMLDivElement>(null);
+
+  // Close mobile sidebar on route change
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    projectsApi.list().then((list) => {
+      setAll(list);
+      if (projectId) setCurrent(list.find((p) => p.id === projectId) ?? null);
+    });
+  }, [projectId]);
+
+  const handleLogout = () => { logout(); navigate('/login'); };
+
+  const projectNav = projectId ? [
+    { to: `/projects/${projectId}/backlog`,  icon: <ListTodo     size={15} />, label: t.nav.backlog      },
+    { to: `/projects/${projectId}/board`,    icon: <Zap          size={15} />, label: t.nav.activeSprint },
+    { to: `/projects/${projectId}/sprints`,  icon: <FolderKanban size={15} />, label: t.nav.sprints      },
+    { to: `/projects/${projectId}/ai`,       icon: <Bot          size={15} />, label: t.nav.aiAssistant  },
+  ] : [];
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
@@ -223,16 +251,13 @@ export function AppLayout() {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          style={{
-            opacity: sidebarOpen ? 1 : 0,
-            transition: 'opacity 0.25s ease',
-          }}
+          style={{ opacity: sidebarOpen ? 1 : 0, transition: 'opacity 0.25s ease' }}
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* ════ SIDEBAR — desktop: always visible | mobile: slide-in drawer ════ */}
+      {/* ════ SIDEBAR ════ */}
       <aside
         className={`sidebar-root flex flex-col z-50 w-64 md:w-56 shrink-0
                     fixed md:relative inset-y-0 left-0
@@ -240,7 +265,26 @@ export function AppLayout() {
                     ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         aria-label="Sidebar navigation"
       >
-        <SidebarContent />
+        <SidebarContent
+          dark={dark}
+          user={user}
+          lang={lang}
+          t={t}
+          projectId={projectId}
+          current={current}
+          allProjects={allProjects}
+          switcherOpen={switcherOpen}
+          setSwitch={setSwitch}
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          menuRef={menuRef}
+          projectNav={projectNav}
+          setSidebarOpen={setSidebarOpen}
+          handleLogout={handleLogout}
+          toggleLang={toggleLang}
+          setDark={setDark}
+          navigate={navigate}
+        />
       </aside>
 
       {/* ════ MAIN CONTENT ════ */}
@@ -252,7 +296,7 @@ export function AppLayout() {
                         border-b border-gray-200/60 dark:border-surface-600/50">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded-lg"
+            className="p-2.5 rounded-lg"
             style={{ color: 'var(--text-secondary)' }}
             aria-label="Open menu"
           >

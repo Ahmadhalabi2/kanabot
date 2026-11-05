@@ -41,7 +41,7 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4
+    <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center p-4
                     bg-gray-100 dark:bg-[#0b0f1a] transition-colors
                     dark:[background-image:radial-gradient(ellipse_at_top,_#1a2744_0%,_#0b0f1a_60%)]">
 
@@ -49,27 +49,27 @@ export function RegisterPage() {
       <div className="fixed top-4 right-4 flex items-center gap-2 z-10">
         <button
           onClick={toggleLang}
-          className="w-8 h-8 p-0 rounded-lg border flex items-center justify-center
+          className="w-11 h-11 p-0 rounded-lg border flex items-center justify-center
                      bg-white dark:bg-surface-700 border-gray-200 dark:border-surface-500
                      text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-surface-600
                      transition-colors"
         >
-          <Languages size={14} />
+          <Languages size={16} />
         </button>
         <button
           onClick={() => setDark((d) => !d)}
-          className="w-8 h-8 p-0 rounded-lg border flex items-center justify-center
+          className="w-11 h-11 p-0 rounded-lg border flex items-center justify-center
                      bg-white dark:bg-surface-700 border-gray-200 dark:border-surface-500
                      text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-surface-600
                      transition-colors"
           title={dark ? 'Light mode' : 'Dark mode'}
         >
-          {dark ? <Sun size={14} /> : <Moon size={14} />}
+          {dark ? <Sun size={16} /> : <Moon size={16} />}
         </button>
       </div>
 
       {/* Card */}
-      <div className="card w-full max-w-md p-8 my-4
+      <div className="card w-full max-w-md p-6 sm:p-8 my-4
                       dark:bg-[#111827] dark:border-[#1e2a3a] dark:shadow-[0_0_40px_rgba(99,102,241,0.06)]">
 
         {/* Logo */}

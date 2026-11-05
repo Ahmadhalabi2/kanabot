@@ -47,7 +47,7 @@ export function CompleteSprintModal({ sprint, plannedSprints, open, onClose, onC
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-surface-600">
           <h2 className="font-semibold text-gray-900 dark:text-white">{t.ai.completeTitle(sprint.name)}</h2>
-          <button className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" onClick={onClose}><X size={18} /></button>
+          <button className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg" onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className="p-6 space-y-5">
@@ -64,12 +64,12 @@ export function CompleteSprintModal({ sprint, plannedSprints, open, onClose, onC
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t.ai.moveUnfinishedTo}</p>
               <div className="space-y-2">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer py-2">
                   <input type="radio" name="moveTo" value="backlog" checked={moveUnfinishedTo === 'backlog'} onChange={() => setMoveUnfinishedTo('backlog')} className="accent-gray-900" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">{t.ai.backlogOption}</span>
                 </label>
                 {plannedSprints.map((s) => (
-                  <label key={s.id} className="flex items-center gap-2 cursor-pointer">
+                  <label key={s.id} className="flex items-center gap-2 cursor-pointer py-2">
                     <input type="radio" name="moveTo" value={s.id} checked={moveUnfinishedTo === s.id} onChange={() => setMoveUnfinishedTo(s.id)} className="accent-gray-900" />
                     <span className="text-sm text-gray-700 dark:text-gray-300">{s.name}</span>
                   </label>

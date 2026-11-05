@@ -50,7 +50,7 @@ function TodoRow({ todo, onOpen }: { todo: Todo; onOpen: (t: Todo) => void }) {
         <span className={`badge text-[11px] ${PRIORITY_PILL[todo.priority]}`}>{t.backlog[`priority_${todo.priority}` as keyof typeof t.backlog] as string}</span>
         {todo.storyPoints && <span className="badge bg-gray-100 dark:bg-surface-600 text-gray-500 dark:text-gray-400 text-[11px] tabular-nums">{todo.storyPoints} pt</span>}
       </div>
-      <button className="btn-ghost w-6 h-6 p-0 rounded opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); onOpen(todo); }}>
+      <button className="btn-ghost w-9 h-9 p-0 rounded sm:opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); onOpen(todo); }}>
         <MoreHorizontal size={13} />
       </button>
     </div>
@@ -86,7 +86,7 @@ function InlineCreate({ onSave, onCancel }: { onSave: (title: string) => Promise
         <button className="btn-primary py-1 px-3 text-xs" onClick={save} disabled={saving || !title.trim()}>
           {saving ? <Spinner size="sm" /> : t.common.save}
         </button>
-        <button className="btn-ghost w-6 h-6 p-0" onClick={onCancel}><X size={12} /></button>
+        <button className="btn-ghost w-9 h-9 p-0" onClick={onCancel}><X size={12} /></button>
       </div>
     </div>
   );
@@ -358,7 +358,7 @@ export function BacklogPage() {
       <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 flex-wrap bg-white dark:bg-surface-800 border-b border-gray-200/60 dark:border-surface-600/50">
         <div className="relative">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input className="input pl-8 text-xs py-1.5 w-48" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.backlog.searchPlaceholder} />
+          <input className="input pl-8 text-xs py-1.5 w-36 sm:w-48" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.backlog.searchPlaceholder} />
           {search && <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onClick={() => setSearch('')}><X size={11} /></button>}
         </div>
         <FilterSelect<TodoPriority>

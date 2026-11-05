@@ -116,7 +116,7 @@ export function TodoDetailModal({ todo, sprints = [], open, onClose, onUpdated, 
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {typeLabel(todo.type)} · {t.todo.created} {new Date(todo.createdAt).toLocaleDateString()}
           </span>
-          <button className="ms-auto text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" onClick={handleClose}><X size={18} /></button>
+          <button className="ms-auto p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg" onClick={handleClose}><X size={18} /></button>
         </div>
 
         {error && (

@@ -73,7 +73,7 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200 dark:border-surface-600">
           <Zap size={16} className="text-gray-700 dark:text-gray-300" />
           <h2 className="font-semibold text-gray-900 dark:text-white">{t.ai.planSprintTitle}</h2>
-          <button className="ms-auto text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" onClick={onClose}><X size={18} /></button>
+          <button className="ms-auto p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg" onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
@@ -115,7 +115,7 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
                     const isSelected = selectedIds.has(todo.id);
                     const isFromPlan = plan?.todoIds.includes(todo.id);
                     return (
-                      <label key={todo.id} className={`flex items-center gap-3 px-3 py-2.5 border-b border-gray-100 dark:border-surface-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 ${!isFromPlan && !isSelected ? 'opacity-60' : ''}`}>
+                      <label key={todo.id} className={`flex items-center gap-3 px-3 py-3 border-b border-gray-100 dark:border-surface-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 ${!isFromPlan && !isSelected ? 'opacity-60' : ''}`}>
                         <input type="checkbox" checked={isSelected} onChange={() => toggle(todo.id)} className="w-4 h-4 rounded border-gray-300 accent-gray-900" />
                         <span className="text-xs text-gray-400 font-mono w-14 shrink-0">{todo.key}</span>
                         <span className="flex-1 text-sm text-gray-800 dark:text-gray-200 truncate">{todo.title}</span>

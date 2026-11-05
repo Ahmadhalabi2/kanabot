@@ -186,9 +186,9 @@ export function ProjectsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); setEditTarget(p); }} className="btn-ghost w-7 h-7 p-0 rounded-lg" title="Edit"><Pencil size={13} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }} className="btn-ghost w-7 h-7 p-0 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Delete"><Trash2 size={13} /></button>
+                  <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => { e.stopPropagation(); setEditTarget(p); }} className="btn-ghost w-9 h-9 p-0 rounded-lg" title="Edit"><Pencil size={13} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }} className="btn-ghost w-9 h-9 p-0 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20" title="Delete"><Trash2 size={13} /></button>
                   </div>
                 </div>
                 {p.description && <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2 leading-relaxed">{p.description}</p>}

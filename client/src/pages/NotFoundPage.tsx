@@ -6,7 +6,7 @@ export function NotFoundPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
       {/* Big 404 */}
       <div className="select-none mb-6">
-        <span className="text-[120px] font-black leading-none"
+        <span className="text-[80px] sm:text-[120px] font-black leading-none"
               style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           404
         </span>

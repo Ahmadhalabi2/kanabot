@@ -104,7 +104,7 @@ function ChatTab({ projectId, messages, setMessages }: {
   };
 
   return (
-    <div className="flex flex-col h-[70vh] sm:h-[560px]">
+    <div className="flex flex-col h-[70dvh] sm:h-[560px]">
       <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white dark:bg-surface-850">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center gap-3">
@@ -489,13 +489,13 @@ export function AiPage() {
         </div>
       </div>
 
-      <div className="p-4 sm:p-6 max-w-4xl">
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto">
         <div className="flex gap-0 mb-0 border-b border-gray-200 dark:border-surface-600 overflow-x-auto">
           {tabs.map((tb) => (
             <button
               key={tb.id}
               onClick={() => setTab(tb.id)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0 ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap shrink-0 ${
                 tab === tb.id
                   ? 'border-gray-900 dark:border-gray-100 text-gray-900 dark:text-gray-100'
                   : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'

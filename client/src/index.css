@@ -59,7 +59,7 @@
   /* ── Buttons ── */
   .btn {
     @apply inline-flex items-center justify-center gap-1.5
-           px-4 py-2 rounded-full text-sm font-semibold
+           px-4 py-2.5 rounded-full text-sm font-semibold
            transition-all duration-200 select-none cursor-pointer
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
@@ -86,7 +86,7 @@
 
   /* ── Inputs ── */
   .input {
-    @apply w-full rounded-xl px-4 py-2.5 text-sm transition-all
+    @apply w-full rounded-xl px-4 py-3 text-sm transition-all
            bg-white border-2 border-violet-100 text-gray-900 placeholder-gray-400
            focus:outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100;
     box-shadow: 0 1px 4px rgba(124,58,237,0.06);
@@ -154,16 +154,6 @@
   /* Sidebar */
   .sidebar-root   { background-color: #ffffff; border-right: 1px solid #e4e2f5; }
   .sidebar-footer { border-top: 1px solid #efeef8; padding: 0.75rem; }
-
-  /* ── Mobile sidebar ── */
-  @media (max-width: 767px) {
-    .sidebar-root {
-      transform: translateX(-100%);
-    }
-    .sidebar-root.open {
-      transform: translateX(0);
-    }
-  }
 
   .section-label { @apply text-[10px] font-bold uppercase tracking-widest px-3 py-1.5; color: #c4c0df; }
   .divider       { border-top: 1px solid #efeef8; }
@@ -358,4 +348,4 @@
 .dark .hover\:bg-gray-50:hover  { background-color: #1a1528 !important; }
 .dark .hover\:bg-gray-100:hover { background-color: #221c35 !important; }
 
-.dark .sticky { background-color: rgba(13,11,20,0.97) !important; }
+.dark .sticky { background-color: rgba(13,11,20,0.97); }

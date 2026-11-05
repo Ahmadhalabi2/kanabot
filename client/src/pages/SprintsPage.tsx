@@ -190,7 +190,7 @@ export function SprintsPage() {
               <button
                 key={sprint.id}
                 onClick={() => handleSelect(sprint)}
-                className={`w-full text-left px-3 py-3 rounded-xl transition-colors
+                className={`w-full text-left px-3 py-3.5 rounded-xl transition-colors
                             ${selected?.id === sprint.id
                               ? 'bg-brand-50 dark:bg-brand-950/40 border border-brand-200/60 dark:border-brand-800/40'
                               : 'hover:bg-gray-50 dark:hover:bg-surface-700 border border-transparent'}`}
