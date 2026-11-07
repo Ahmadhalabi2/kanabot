@@ -218,6 +218,8 @@ export function BoardPage() {
     if (!over || !board) return;
     const dragged = active.data.current?.todo as Todo;
     const overId  = String(over.id);
+
+    // Determine target status
     const targetStatus =
       COLUMNS.find((c) => c.id === overId)?.id ??
       (Object.entries(board.columns).find(([, arr]) =>
@@ -225,14 +227,29 @@ export function BoardPage() {
       )?.[0] as TodoStatus | undefined) ??
       null;
 
-    if (!targetStatus || dragged.status === targetStatus) return;
+    if (!targetStatus) return;
 
-    // optimistic
+    // Calculate position: if dropped on a card, insert before it; if dropped on column, append
+    const targetColumn = board.columns[targetStatus];
+    const overIsColumn = COLUMNS.some((c) => c.id === overId);
+    const overIndex    = overIsColumn ? targetColumn.length : targetColumn.findIndex((t) => t.id === overId);
+    const position     = overIndex === -1 ? targetColumn.length : overIndex;
+
+    // If same column and same position — nothing to do
+    if (dragged.status === targetStatus) {
+      const currentIndex = targetColumn.findIndex((t) => t.id === dragged.id);
+      if (currentIndex === position || currentIndex === position - 1) return;
+    }
+
+    // Optimistic update
     setBoard((prev) => {
       if (!prev) return prev;
       const cols = { ...prev.columns };
       cols[dragged.status] = cols[dragged.status].filter((t) => t.id !== dragged.id);
-      cols[targetStatus]   = [...cols[targetStatus], { ...dragged, status: targetStatus }];
+      const target = [...cols[targetStatus]];
+      const insertAt = overIsColumn ? target.length : target.findIndex((t) => t.id === overId);
+      target.splice(insertAt === -1 ? target.length : insertAt, 0, { ...dragged, status: targetStatus });
+      cols[targetStatus] = target;
       return { ...prev, columns: cols };
     });
 
@@ -240,7 +257,7 @@ export function BoardPage() {
       await todosApi.move(dragged.id, {
         status: targetStatus,
         sprintId: dragged.sprintId,
-        position: 9999,
+        position,
       });
       loadBoard();
     } catch { loadBoard(); }

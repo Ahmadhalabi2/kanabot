@@ -8,12 +8,18 @@ import { useLang } from '../../context/LanguageContext';
 
 interface Props { projectId: string; open: boolean; onClose: () => void; onCreated: () => void; }
 
-const SPRINT_LENGTHS = [
-  { value: '1week',  label: '1 week'  },
-  { value: '2weeks', label: '2 weeks' },
-  { value: '3weeks', label: '3 weeks' },
-  { value: '4weeks', label: '4 weeks' },
+const SPRINT_LENGTHS: { value: string; label: string; days: number }[] = [
+  { value: '1week',  label: '1 week',  days: 7  },
+  { value: '2weeks', label: '2 weeks', days: 14 },
+  { value: '3weeks', label: '3 weeks', days: 21 },
+  { value: '4weeks', label: '4 weeks', days: 28 },
 ];
+
+function addDays(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) {
   const { t } = useLang();
@@ -52,7 +58,15 @@ export function PlanSprintModal({ projectId, open, onClose, onCreated }: Props) 
     if (!plan) return;
     setCreating(true);
     try {
-      await sprintsApi.create(projectId, { goal: plan.goal, todoIds: [...selectedIds] });
+      const lengthDays = SPRINT_LENGTHS.find((l) => l.value === sprintLength)?.days ?? 14;
+      const startDate = new Date().toISOString().slice(0, 10);
+      const endDate = addDays(lengthDays);
+      await sprintsApi.create(projectId, {
+        goal: plan.goal,
+        todoIds: [...selectedIds],
+        startDate,
+        endDate,
+      });
       onCreated();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t.common.error);

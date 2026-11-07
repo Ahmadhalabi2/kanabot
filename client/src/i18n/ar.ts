@@ -148,5 +148,6 @@ export const ar: Translations = {
     emptyBacklog: 'قائمة المهام فارغة. أضف بعض المهام أولاً.',
     createSprintWith: (n: number) => `إنشاء سبرينت بـ ${n} مهمة`,
     sprintLengthLabel: 'مدة السبرينت',
+
   },
 };
